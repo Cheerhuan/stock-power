@@ -198,7 +198,9 @@ export default function AISignalCenter({ stockData }: Props) {
         eps: Number(val.eps) || 0,
         dividend_yield: Number(val.dividend_yield) || 0,
         revenue_growth: Number(val.revenue_growth) || 0,
-        consensus: Array.isArray(val.consensus) ? val.consensus : [],
+        consensus: Array.isArray(val.consensus) ? val.consensus : 
+                     (typeof val.consensus === 'object' && val.consensus ? 
+                       Object.entries(val.consensus).filter(([,v]) => v).map(([k]) => k) : []),
         consensus_count: Number(val.consensus_count) || 0,
       }))
   }, [stockData])
