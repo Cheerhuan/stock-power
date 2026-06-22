@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
-import { createChart, Color } from 'lightweight-charts';
+import { createChart, ColorType, CandlestickSeries } from 'lightweight-charts';
 
 interface StockChartProps {
   stockId: string;
@@ -15,12 +15,12 @@ export default function StockChart({ stockId, price }: StockChartProps) {
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: Color.rgb(9, 9, 11) }, // Zinc-950
-        textColor: '#a1a1aa', // Zinc-400
+        background: { type: ColorType.Solid, color: '#09090b' },
+        textColor: '#a1a1aa',
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: '#27272a' }, // Zinc-800
+        vertLines: { color: '#27272a' },
         horzLines: { color: '#27272a' },
       },
       width: chartContainerRef.current.clientWidth,
@@ -34,15 +34,14 @@ export default function StockChart({ stockId, price }: StockChartProps) {
       },
     });
 
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: '#10b981', // Emerald-500
-      downColor: '#f43f5e', // Rose-500
+    const candleSeries = chart.addSeries(CandlestickSeries, {
+      upColor: '#10b981',
+      downColor: '#f43f5e',
       borderVisible: false,
       wickUpColor: '#10b981',
       wickDownColor: '#f43f5e',
     });
 
-    // Generate high-fidelity mock data based on the current price
     const basePrice = parseFloat(price);
     const data = [];
     let currentPrice = basePrice * 0.9;
@@ -54,8 +53,8 @@ export default function StockChart({ stockId, price }: StockChartProps) {
       const low = Math.min(open, close) - Math.random() * 5;
       
       data.push({
-        time: `2026-06-${String(i + 1).padStart(2, '0')}`, 
-        open, high, low, close
+        time: `2026-06-${String(i + 1).padStart(2, '0')}`,
+        open, high, low, close,
       });
       currentPrice = close;
     }

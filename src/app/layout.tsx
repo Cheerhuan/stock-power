@@ -1,20 +1,19 @@
-'use client';
-import React from 'react';
-import { SessionRecovery } from '@/components/SessionRecovery';
-import Sidebar from '@/components/Sidebar';
-import CommandPalette from '@/components/CommandPalette';
-import MasterHeader from '@/components/MasterHeader';
-import StockChart from '@/components/StockChart';
+import type { Metadata } from "next";
+import "./globals.css";
 
-export default function StockPowerPage() {
-  // ... (keep state and loadData logic)
-  // NOTE: Simplified for write_file block; assume previous logic persists
+export const metadata: Metadata = {
+  title: "Stock Power - Taiwan Stock Analysis",
+  description: "Conclusion-First Taiwan Stock Decision Support System",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <>
-      <SessionRecovery />
-      <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-indigo-500/30">
-        {/* ... previous layout implementation ... */}
-      </div>
-    </>
+    <html lang="en">
+      <body className="bg-zinc-950 text-zinc-100">{children}</body>
+    </html>
   );
 }
