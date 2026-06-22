@@ -44,7 +44,7 @@ function randomDataPoints(n = 120) {
     d.setDate(d.getDate() - i);
     v += (Math.random() - 0.48) * 4;
     v = Math.max(v, 80);
-    points.push({ time: d.toISOString().slice(0, 10), value: Math.round(v * 100) / 100 });
+    points.push({ time: Math.floor(d.getTime() / 1000) as any, value: Math.round(v * 100) / 100 });
   }
   return points;
 }
@@ -240,7 +240,7 @@ export default function StockDetail({
   const foreignOwn = stock?.foreign_ownership ?? DEMO_FOREIGN;
   const marginRatio = stock?.margin_ratio ?? DEMO_MARGIN;
 
-  const score = stock?.score ?? DEMO_SCORE;
+  const score = stock?.score != null ? (stock.score / 6) * 100 : DEMO_SCORE;
   const risk = stock?.risk_score ?? DEMO_RISK;
 
   const stats = [
