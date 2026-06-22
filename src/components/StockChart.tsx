@@ -47,13 +47,15 @@ export default function StockChart({ stockId, price }: StockChartProps) {
     let currentPrice = basePrice * 0.9;
     
     for (let i = 0; i < 100; i++) {
+      const day = Math.min(30, (i % 30) + 1);
+      const month = i < 30 ? '06' : '07';
       const open = currentPrice + (Math.random() - 0.5) * 10;
       const close = open + (Math.random() - 0.5) * 10;
       const high = Math.max(open, close) + Math.random() * 5;
       const low = Math.min(open, close) - Math.random() * 5;
       
       data.push({
-        time: `2026-06-${String(i + 1).padStart(2, '0')}`,
+        time: `2026-${month}-${String(day).padStart(2, '0')}`,
         open, high, low, close,
       });
       currentPrice = close;
