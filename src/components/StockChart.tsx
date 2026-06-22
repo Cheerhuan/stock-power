@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
-import { createChart, ColorType, CandlestickSeries, AreaSeries, LineSeries } from 'lightweight-charts';
+import { createChart, ColorType, CandlestickSeries, LineSeries } from 'lightweight-charts';
 
 export default function StockChart({ stock }: { stock: any }) {
   const chartRef = useRef<HTMLDivElement>(null);
@@ -19,14 +19,20 @@ export default function StockChart({ stock }: { stock: any }) {
       crosshair: { vertLine: { color: '#52525b', style: 2 }, horzLine: { color: '#52525b', style: 2 } },
     });
 
+    // Use daily timestamps (seconds since epoch) — no ambiguity
+    const baseTs = Math.floor(new Date(2026, 4, 1).getTime() / 1000); // May 1, 2026
+
     const candleData = prices.slice(0, 60).map((p: number, i: number) => {
-      const day = (i % 30) + 1;
-      const month = i < 30 ? '06' : '07';
       const o = p * (1 + (Math.random() - 0.5) * 0.02);
       const c = p * (1 + (Math.random() - 0.5) * 0.02);
-      return { time: `2026-${month}-${String(day).padStart(2,'0')}`, open: o, high: Math.max(o, c) * 1.005, low: Math.min(o, c) * 0.995, close: c };
+      return {
+        time: baseTs + i * 86400, // +1 day per candle
+        open: o,
+        high: Math.max(o, c) * 1.005,
+        low: Math.min(o, c) * 0.995,
+        close: c,
+      };
     });
-
     candleData[candleData.length - 1].close = prices[prices.length - 1];
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
@@ -35,12 +41,12 @@ export default function StockChart({ stock }: { stock: any }) {
     });
     candleSeries.setData(candleData);
 
-    // MA5 overlay
+    // MA5
+    const ma5 = chart.addSeries(LineSeries, { color: '#818cf8', lineWidth: 1, lineStyle: 1 });
     const ma5Data = candleData.map((d: any, i: number) => {
       const vals = candleData.slice(Math.max(0, i - 4), i + 1).map((x: any) => x.close);
       return { time: d.time, value: vals.reduce((a: number, b: number) => a + b, 0) / vals.length };
     });
-    const ma5 = chart.addSeries(LineSeries, { color: '#818cf8', lineWidth: 1, lineStyle: 1 });
     ma5.setData(ma5Data);
 
     chart.timeScale().fitContent();
@@ -50,7 +56,5 @@ export default function StockChart({ stock }: { stock: any }) {
     return () => { window.removeEventListener('resize', resize); chart.remove(); };
   }, [prices]);
 
-  return (
-    <div ref={chartRef} className="w-full" />
-  );
+  return <div ref={chartRef} className="w-full" />;
 }

@@ -26,13 +26,11 @@ export default function MarketOverview({ stockData }: MarketOverviewProps) {
     const series = chart.addSeries(AreaSeries, {
       lineColor: '#818cf8', topColor: '#818cf840', bottomColor: '#09090b00', lineWidth: 2,
     });
-    series.setData(hist.map((v: number, i: number) => {
-      const d = Math.min(i, 60);
-      const day = (d % 60) + 1;
-      const month = d < 60 ? '06' : '08';
-      const dateStr = `2026-${month}-${String(day).padStart(2,'0')}`;
-      return { time: dateStr, value: v };
-    }));
+    const baseTs = Math.floor(new Date(2026, 4, 1).getTime() / 1000);
+    series.setData(hist.map((v: number, i: number) => ({
+      time: baseTs + i * 86400,
+      value: v,
+    })));
     chart.timeScale().fitContent();
     const resize = () => { if (chartRef.current) chart.applyOptions({ width: chartRef.current.clientWidth }); };
     window.addEventListener('resize', resize);
