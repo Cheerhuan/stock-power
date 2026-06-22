@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts'
 import { Globe, Building2, Briefcase, TrendingUp, TrendingDown } from 'lucide-react'
 
 /* ── Config ── */
@@ -34,8 +34,9 @@ function extractTrend(data: any, period: Period): number[] {
 function netBadge(values: number[]): { label: string; value: string; isPositive: boolean } {
   const total = values.reduce((s, v) => s + v, 0)
   const abs = Math.abs(total)
-  if (total > 0) return { label: '買超', value: `${abs.toFixed(1)}億`, isPositive: true }
-  if (total < 0) return { label: '賣超', value: `${abs.toFixed(1)}億`, isPositive: false }
+  const yi = abs / 1e8
+  if (total > 0) return { label: '買超', value: `${yi.toFixed(1)}億`, isPositive: true }
+  if (total < 0) return { label: '賣超', value: `${yi.toFixed(1)}億`, isPositive: false }
   return { label: '持平', value: '0.0億', isPositive: true }
 }
 
@@ -89,6 +90,18 @@ function InstitutionBarChart({ values }: { values: number[] }) {
               axisLine={false}
               tickLine={false}
               interval="preserveStartEnd"
+            />
+            <YAxis
+              tick={{ fill: '#71717A', fontSize: 8 }}
+              axisLine={false}
+              tickLine={false}
+              width={30}
+              tickFormatter={(v: number) => `${(v / 1e8).toFixed(0)}億`}
+            />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#1A1D24', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 11 }}
+              labelStyle={{ color: '#8B8B95' }}
+              formatter={(v: any) => v != null ? [`${(v / 1e8).toFixed(1)}億`, '買賣超'] : ['0億', '買賣超']}
             />
             <Bar dataKey="value" radius={[2, 2, 0, 0]} maxBarSize={20}>
               {chartData.map((entry, idx) => (
