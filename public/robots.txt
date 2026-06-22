@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cheerhuan.github.io/stock-power/sitemap.xml

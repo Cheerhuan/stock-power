@@ -1,0 +1,15 @@
+v3.0: AI 投資決策中心全面改版
+
+- i18n 多語言系統 (zh-TW/en/ja) 自動偵測
+- 100vh Hero 區：時間/市場狀態/Fear & Greed 儀表板
+- 台股市場總覽：4大指數 + 6檔ETF + 熱門排行
+- AI 選股中心：圓形 Gauge 評分 + 投資建議
+- AI 共識評分系統：6 位投資大師策略匹配
+- 法人動向中心：外資/投信/自營商 5/20/60日圖表
+- 籌碼分析中心：集中度/券資比/千張大戶
+- 即時新聞中心：AI 摘要 + 情緒分析
+- 個人投資儀表板：損益/Sharpe/資產配置圓餅圖
+- 全 Glassmorphism 暗色主題 (Apple Vision Pro)
+- Framer Motion 交錯入場動畫
+- SEO: OG/Twitter Card/JSON-LD/Sitemap/Robots
+- 導航區塊切換：Dashboard/Market/AI/Strategies/Portfolio/News
