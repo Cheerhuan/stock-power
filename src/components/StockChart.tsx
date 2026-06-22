@@ -1,92 +1,56 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
-import { createChart, ColorType, CandlestickSeries } from 'lightweight-charts';
+import { createChart, ColorType, CandlestickSeries, AreaSeries, LineSeries } from 'lightweight-charts';
 
-interface StockChartProps {
-  stockId: string;
-  price: string;
-}
-
-export default function StockChart({ stockId, price }: StockChartProps) {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
+export default function StockChart({ stock }: { stock: any }) {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const prices = stock?.prices || [];
 
   useEffect(() => {
-    if (!chartContainerRef.current) return;
+    if (!chartRef.current || prices.length < 2) return;
 
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: '#09090b' },
-        textColor: '#a1a1aa',
-        fontSize: 11,
-      },
-      grid: {
-        vertLines: { color: '#27272a' },
-        horzLines: { color: '#27272a' },
-      },
-      width: chartContainerRef.current.clientWidth,
-      height: 300,
-      timeScale: {
-        borderVisible: false,
-        timeVisible: true,
-      },
-      rightPriceScale: {
-        borderVisible: false,
-      },
+    const chart = createChart(chartRef.current, {
+      layout: { background: { type: ColorType.Solid, color: '#09090b' }, textColor: '#a1a1aa', fontSize: 11 },
+      grid: { vertLines: { color: '#18181b' }, horzLines: { color: '#18181b' } },
+      width: chartRef.current.clientWidth,
+      height: 320,
+      timeScale: { borderVisible: false, timeVisible: true },
+      rightPriceScale: { borderVisible: false },
+      crosshair: { vertLine: { color: '#52525b', style: 2 }, horzLine: { color: '#52525b', style: 2 } },
     });
+
+    const candleData = prices.slice(0, 60).map((p: number, i: number) => {
+      const day = (i % 30) + 1;
+      const month = i < 30 ? '06' : '07';
+      const o = p * (1 + (Math.random() - 0.5) * 0.02);
+      const c = p * (1 + (Math.random() - 0.5) * 0.02);
+      return { time: `2026-${month}-${String(day).padStart(2,'0')}`, open: o, high: Math.max(o, c) * 1.005, low: Math.min(o, c) * 0.995, close: c };
+    });
+
+    candleData[candleData.length - 1].close = prices[prices.length - 1];
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#10b981',
-      downColor: '#f43f5e',
-      borderVisible: false,
-      wickUpColor: '#10b981',
-      wickDownColor: '#f43f5e',
+      upColor: '#10b981', downColor: '#f43f5e', borderVisible: false,
+      wickUpColor: '#10b981', wickDownColor: '#f43f5e',
     });
+    candleSeries.setData(candleData);
 
-    const basePrice = parseFloat(price);
-    const data = [];
-    let currentPrice = basePrice * 0.9;
-    
-    for (let i = 0; i < 100; i++) {
-      const day = Math.min(30, (i % 30) + 1);
-      const month = i < 30 ? '06' : '07';
-      const open = currentPrice + (Math.random() - 0.5) * 10;
-      const close = open + (Math.random() - 0.5) * 10;
-      const high = Math.max(open, close) + Math.random() * 5;
-      const low = Math.min(open, close) - Math.random() * 5;
-      
-      data.push({
-        time: `2026-${month}-${String(day).padStart(2, '0')}`,
-        open, high, low, close,
-      });
-      currentPrice = close;
-    }
+    // MA5 overlay
+    const ma5Data = candleData.map((d: any, i: number) => {
+      const vals = candleData.slice(Math.max(0, i - 4), i + 1).map((x: any) => x.close);
+      return { time: d.time, value: vals.reduce((a: number, b: number) => a + b, 0) / vals.length };
+    });
+    const ma5 = chart.addSeries(LineSeries, { color: '#818cf8', lineWidth: 1, lineStyle: 1 });
+    ma5.setData(ma5Data);
 
-    candleSeries.setData(data);
     chart.timeScale().fitContent();
 
-    const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-    };
-  }, [stockId, price]);
+    const resize = () => { if (chartRef.current) chart.applyOptions({ width: chartRef.current.clientWidth }); };
+    window.addEventListener('resize', resize);
+    return () => { window.removeEventListener('resize', resize); chart.remove(); };
+  }, [prices]);
 
   return (
-    <div className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 overflow-hidden">
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Precision Price Action</div>
-        <div className="flex gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span className="text-[10px] text-zinc-400 font-mono">LIVE DATA</span>
-        </div>
-      </div>
-      <div ref={chartContainerRef} className="w-full" />
-    </div>
+    <div ref={chartRef} className="w-full" />
   );
 }
