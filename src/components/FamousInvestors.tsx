@@ -70,8 +70,8 @@ export default function FamousInvestors({ stockData }: Props) {
   if (!stockData) return null;
 
   return (
-    <section className="py-8">
-      <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
+    <section>
+      <div className="section-container section-spacing">
         {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -85,7 +85,7 @@ export default function FamousInvestors({ stockData }: Props) {
             </div>
             <h2 className="text-lg font-bold text-white tracking-tight">AI 共識評分系統</h2>
           </div>
-          <p className="text-[11px] text-zinc-500 ml-10">頂尖投資策略模擬分析</p>
+          <p className="text-[13px] md:text-[11px] text-zinc-500 ml-10">頂尖投資策略模擬分析</p>
         </motion.div>
 
         {/* ── 大師卡片網格 ── */}
@@ -93,7 +93,7 @@ export default function FamousInvestors({ stockData }: Props) {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8"
         >
           {FAMOUS_INVESTORS.map((inv, i) => {
             const Icon = inv.icon;
@@ -102,7 +102,7 @@ export default function FamousInvestors({ stockData }: Props) {
               <motion.div
                 key={inv.id}
                 variants={itemVariants}
-                className="glass rounded-xl p-4 glass-hover cursor-pointer group relative overflow-hidden"
+                className="glass rounded-xl p-4 md:p-5 glass-hover cursor-pointer group relative overflow-hidden"
               >
                 {/* Top accent line */}
                 <div className="absolute top-0 left-4 right-4 h-[2px] rounded-full opacity-60"
@@ -114,23 +114,23 @@ export default function FamousInvestors({ stockData }: Props) {
                     <Icon size={16} />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-white group-hover:text-[#00E5A8] transition-colors truncate">
+                    <div className="text-[13px] md:text-xs font-bold text-white group-hover:text-[#00E5A8] transition-colors truncate">
                       {inv.name}
                     </div>
-                    <div className="text-[9px] text-zinc-600">{inv.style}</div>
+                    <div className="text-[13px] md:text-[9px] text-zinc-600">{inv.style}</div>
                   </div>
                 </div>
 
-                <p className="text-[10px] text-zinc-500 leading-relaxed mb-3 min-h-[2.5em] italic">
+                <p className="text-[13px] md:text-[10px] text-zinc-500 leading-relaxed mb-3 min-h-[2.5em] italic">
                   &ldquo;{inv.quote}&rdquo;
                 </p>
 
                 <div className="flex items-center justify-between pt-3 border-t border-white/5">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-white">{matchCount}</span>
-                    <span className="text-[9px] text-zinc-600">檔符合</span>
+                    <span className="text-[13px] md:text-[11px] font-bold text-white">{matchCount}</span>
+                    <span className="text-[13px] md:text-[9px] text-zinc-600">檔符合</span>
                   </div>
-                  <div className="flex items-center gap-1 text-[9px] text-zinc-700 group-hover:text-[#00E5A8] transition-colors">
+                  <div className="flex items-center gap-1 text-[13px] md:text-[9px] text-zinc-700 group-hover:text-[#00E5A8] transition-colors">
                     <span>策略評分 {inv.score}</span>
                     <ChevronRight size={10} />
                   </div>
@@ -149,7 +149,7 @@ export default function FamousInvestors({ stockData }: Props) {
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-4 rounded-full bg-[#00E5A8]" />
             <h3 className="text-sm font-bold text-white">最高共識個股</h3>
-            <span className="text-[10px] text-zinc-600">Top 3 Consensus Picks</span>
+            <span className="text-[13px] md:text-[10px] text-zinc-600">Top 3 Consensus Picks</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -163,7 +163,7 @@ export default function FamousInvestors({ stockData }: Props) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + idx * 0.08, duration: 0.4 }}
-                  className="glass rounded-xl p-4 glass-hover group relative overflow-hidden"
+                  className="glass rounded-xl p-4 md:p-5 glass-hover group relative overflow-hidden"
                 >
                   {/* Rank badge */}
                   <div className="absolute top-3 right-3">
@@ -185,28 +185,28 @@ export default function FamousInvestors({ stockData }: Props) {
                     <div className="text-sm font-bold text-white group-hover:text-[#00E5A8] transition-colors">
                       {stock.name}
                     </div>
-                    <div className="text-[10px] text-zinc-600 font-mono">
+                    <div className="text-[13px] md:text-[10px] text-zinc-600 font-mono">
                       {stock.id} · {stock.sector}
                     </div>
                   </div>
 
                   {/* Matched investors checkmarks */}
-                  <div className="flex flex-wrap gap-1.5 mb-3">
+                  <div className="flex flex-wrap gap-2 md:gap-1.5 mb-3">
                     {FAMOUS_INVESTORS.map(inv => {
                       const matched = stock.consensus?.[inv.id] === true;
                       return (
                         <span
                           key={inv.id}
-                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
+                          className={`inline-flex items-center gap-1 px-2 md:px-1.5 py-1 md:py-0.5 rounded text-[13px] md:text-[8px] font-medium transition-all ${
                             matched
                               ? 'bg-[#00E5A8]/10 text-[#00E5A8] border border-[#00E5A8]/20'
                               : 'bg-zinc-800/40 text-zinc-700 border border-white/5'
                           }`}
                         >
                           {matched ? (
-                            <CheckCircle2 size={8} className="text-[#00E5A8]" />
+                            <CheckCircle2 size={14} className="text-[#00E5A8]" />
                           ) : (
-                            <span className="w-2 h-2 rounded-full bg-zinc-800" />
+                            <span className="w-3.5 h-3.5 md:w-2 md:h-2 rounded-full bg-zinc-800" />
                           )}
                           {inv.name.split(' ').pop()}
                         </span>
@@ -217,12 +217,12 @@ export default function FamousInvestors({ stockData }: Props) {
                   {/* Consensus score */}
                   <div className="flex items-center justify-between pt-3 border-t border-white/5">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-zinc-600">AI 共識</span>
-                      <span className="text-[11px] font-mono font-bold text-white">
+                      <span className="text-[13px] md:text-[10px] text-zinc-600">AI 共識</span>
+                      <span className="text-[13px] md:text-[11px] font-mono font-bold text-white">
                         {stock.consensus_count}/{totalUniqueInvestors}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold"
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[13px] md:text-[9px] font-bold"
                       style={{
                         background: `${gradeColor}18`,
                         color: gradeColor,
@@ -242,29 +242,29 @@ export default function FamousInvestors({ stockData }: Props) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.4 }}
-          className="mt-6 glass rounded-xl px-5 py-3 flex items-center justify-between"
+          className="mt-6 glass rounded-xl px-4 md:px-5 py-3 md:py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-0 justify-between"
         >
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#00E5A8]/20 to-emerald-800/20 flex items-center justify-center border border-[#00E5A8]/10">
               <Award size={12} className="text-[#00E5A8]" />
             </div>
             <div>
-              <span className="text-xs font-bold text-white">
+              <span className="text-[13px] md:text-xs font-bold text-white">
                 {totalStocksWithConsensus} 檔個股
               </span>
-              <span className="text-[10px] text-zinc-600 ml-1">
+              <span className="text-[13px] md:text-[10px] text-zinc-600 ml-1">
                 符合 {totalUniqueInvestors} 位投資大師策略
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1.5 w-24 bg-zinc-800 rounded-full overflow-hidden">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="h-1.5 w-full sm:w-24 bg-zinc-800 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#00E5A8] to-emerald-500 transition-all duration-700"
                 style={{ width: `${Math.min(100, (totalMatches / (totalStocksWithConsensus * totalUniqueInvestors || 1)) * 100)}%` }}
               />
             </div>
-            <span className="text-[10px] font-mono text-zinc-600">
+            <span className="text-[13px] md:text-[10px] font-mono text-zinc-600 whitespace-nowrap">
               {totalMatches} 次匹配
             </span>
           </div>

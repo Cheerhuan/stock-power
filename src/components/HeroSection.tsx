@@ -130,7 +130,7 @@ function FearGreedGauge({ value }: { value: number }) {
   const label = value < 25 ? '極度恐懼' : value < 40 ? '恐懼' : value < 60 ? '中性' : value < 75 ? '貪婪' : '極度貪婪';
 
   return (
-    <svg width="200" height="120" viewBox="0 0 200 130" className="overflow-visible">
+    <svg width="100%" height="auto" viewBox="0 0 200 130" className="overflow-visible max-w-[160px] lg:max-w-[200px]">
       <defs>
         <linearGradient id="fearGreedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#FF4D67" />
@@ -202,9 +202,20 @@ export default function HeroSection({ stockData }: Props) {
   const [displayPrice, setDisplayPrice] = useState(TICKERS[0].price);
   const [taipeiTime, setTaipeiTime] = useState(getTaipeiNow);
   const [mounted, setMounted] = useState(false);
+  const [chartHeight, setChartHeight] = useState(320);
 
   // Hydration safety
   useEffect(() => { setMounted(true); }, []);
+
+  // Responsive chart height
+  useEffect(() => {
+    const handleResize = () => {
+      setChartHeight(window.innerWidth < 1024 ? 200 : 320);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Taipei clock — tick every second
   useEffect(() => {
@@ -231,7 +242,7 @@ export default function HeroSection({ stockData }: Props) {
       layout: { background: { type: ColorType.Solid, color: '#080B11' }, textColor: '#4B5563', fontSize: 10 },
       grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } },
       width: chartRef.current.clientWidth,
-      height: 320,
+      height: chartHeight,
       timeScale: { borderVisible: false, visible: false },
       rightPriceScale: { borderVisible: false, visible: false },
       leftPriceScale: { visible: false },
@@ -274,18 +285,18 @@ export default function HeroSection({ stockData }: Props) {
   if (!mounted) return null;
 
   return (
-    <section className="relative min-h-screen pt-24 pb-12 overflow-hidden flex flex-col">
+    <section className="relative min-h-[100dvh] lg:min-h-screen pt-20 lg:pt-24 pb-12 overflow-hidden flex flex-col">
       {/* Background gradient orbs */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[60%] pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(0,229,168,0.04) 0%, transparent 70%)' }} />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(0,229,168,0.025) 0%, transparent 70%)' }} />
 
-      <div className="max-w-[1440px] mx-auto px-4 lg:px-8 w-full flex-1 flex flex-col">
+      <div className="section-container flex-1 flex flex-col">
         {/* ── Status Bar ── */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex flex-wrap items-center gap-4 mb-8"
+          className="flex flex-wrap items-center gap-3 lg:gap-4 mb-6 lg:mb-8"
         >
           {/* Taipei Clock */}
           <div className="glass-sm rounded-xl px-4 py-2 flex items-center gap-3">
@@ -312,7 +323,7 @@ export default function HeroSection({ stockData }: Props) {
         </motion.div>
 
         {/* ── Main Grid ── */}
-        <div className="grid lg:grid-cols-2 gap-8 items-center flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-8 gap-y-10 items-center flex-1">
           {/* ── Left Column ── */}
           <div className="space-y-6">
             <motion.div
@@ -327,7 +338,7 @@ export default function HeroSection({ stockData }: Props) {
               </div>
 
               {/* Title */}
-              <h1 className="text-4xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight">
+              <h1 className="text-3xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight">
                 Stock Power
                 <span className="block gradient-text mt-1">AI</span>
               </h1>
@@ -347,7 +358,7 @@ export default function HeroSection({ stockData }: Props) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="glass rounded-2xl p-5 max-w-sm"
+                className="glass rounded-2xl p-5"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div>
@@ -388,18 +399,18 @@ export default function HeroSection({ stockData }: Props) {
             </div>
 
             {/* ── CTA Buttons ── */}
-            <div className="flex items-center gap-4 pt-2">
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 pt-2">
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="px-6 py-3 bg-[#00E5A8] text-[#080B11] text-sm font-bold rounded-xl hover:bg-emerald-400 transition-all shadow-lg shadow-[#00E5A8]/20"
+                className="w-full lg:w-auto px-6 py-3 bg-[#00E5A8] text-[#080B11] text-sm font-bold rounded-xl hover:bg-emerald-400 transition-all shadow-lg shadow-[#00E5A8]/20"
               >
                 開始分析
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="px-6 py-3 glass text-sm font-medium text-zinc-300 rounded-xl hover:text-white transition-all"
+                className="w-full lg:w-auto px-6 py-3 glass text-sm font-medium text-zinc-300 rounded-xl hover:text-white transition-all"
               >
                 觀看演示
               </motion.button>

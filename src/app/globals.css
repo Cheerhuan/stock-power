@@ -23,6 +23,17 @@
   --radius: 24px;
   --radius-sm: 16px;
   --radius-xs: 12px;
+
+  /* Spacing scale */
+  --gutter: 16px;
+  --container: 1440px;
+}
+
+@media (min-width: 768px) { :root { --gutter: 20px; } }
+@media (min-width: 1024px) { :root { --gutter: 32px; } }
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -31,6 +42,28 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+/* ── Container ── */
+.section-container {
+  max-width: var(--container);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+  width: 100%;
+}
+
+/* ── Section vertical spacing ── */
+.section-spacing {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+@media (min-width: 768px) {
+  .section-spacing {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
 }
 
 /* ── Glassmorphism ── */
@@ -146,7 +179,7 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
 
-/* Mobile bottom nav safe area */
+/* Mobile bottom safe area */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 80px);
 }
@@ -155,4 +188,15 @@ body {
 .tv-lightweight-charts {
   --tv-color-platform-background: transparent;
   --tv-color-pane-background: transparent;
+}
+
+/* ── Selection ── */
+::selection {
+  background: rgba(0, 229, 168, 0.2);
+  color: #fff;
+}
+
+/* ── Utility: text balancing for headings ── */
+.text-balance {
+  text-wrap: balance;
 }

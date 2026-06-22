@@ -55,7 +55,7 @@ function PeriodTabs({
         <button
           key={p}
           onClick={() => onChange(p)}
-          className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+          className={`flex-1 py-2 sm:py-1.5 text-[13px] font-medium rounded-md transition-all duration-200 ${
             selected === p
               ? 'bg-white/[0.1] text-white shadow-sm'
               : 'text-zinc-500 hover:text-zinc-300'
@@ -80,22 +80,22 @@ function InstitutionBarChart({ values }: { values: number[] }) {
   )
 
   return (
-    <div className="h-32 mb-3">
+    <div className="h-24 sm:h-32 mb-3">
       {chartData.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 4, right: 2, left: 2, bottom: 0 }}>
             <XAxis
               dataKey="day"
-              tick={{ fill: '#71717A', fontSize: 9 }}
+              tick={{ fill: '#71717A', fontSize: 10 }}
               axisLine={false}
               tickLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
-              tick={{ fill: '#71717A', fontSize: 8 }}
+              tick={{ fill: '#71717A', fontSize: 9 }}
               axisLine={false}
               tickLine={false}
-              width={30}
+              width={34}
               tickFormatter={(v: number) => `${(v / 1e8).toFixed(0)}億`}
             />
             <Tooltip
@@ -111,7 +111,7 @@ function InstitutionBarChart({ values }: { values: number[] }) {
           </BarChart>
         </ResponsiveContainer>
       ) : (
-        <div className="flex items-center justify-center h-full text-zinc-600 text-xs">
+        <div className="flex items-center justify-center h-full text-zinc-600 text-[13px]">
           暫無數據
         </div>
       )}
@@ -123,15 +123,15 @@ function Badge({ values }: { values: number[] }) {
   const { label, value, isPositive } = netBadge(values)
   return (
     <div
-      className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-semibold ${
+      className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-[13px] font-bold w-full ${
         isPositive
-          ? 'bg-emerald-500/10 text-emerald-400'
-          : 'bg-red-500/10 text-red-400'
+          ? 'bg-emerald-500/15 text-emerald-400'
+          : 'bg-red-500/15 text-red-400'
       }`}
     >
-      {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+      {isPositive ? <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" /> : <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5" />}
       <span>{label}</span>
-      <span>{value}</span>
+      <span className="tabular-nums">{value}</span>
     </div>
   )
 }
@@ -161,14 +161,14 @@ function InstitutionCard({
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
           style={{ backgroundColor: `${institution.color}20` }}
         >
           <institution.icon className="w-5 h-5" style={{ color: institution.color }} />
         </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm">{institution.name}</h3>
-          <p className="text-zinc-500 text-[10px] leading-tight">
+        <div className="min-w-0">
+          <h3 className="text-white font-semibold text-[15px]">{institution.name}</h3>
+          <p className="text-zinc-500 text-[13px] leading-tight truncate">
             {institution.key === 'foreign'
               ? 'Foreign Institution'
               : institution.key === 'trust'
@@ -242,19 +242,20 @@ export default function InstitutionTracker({ stockData }: Props) {
   }, [periods, trendMap])
 
   return (
-    <div className="space-y-6">
+    <div className="section-container section-spacing">
       {/* ── Title ── */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="mb-6"
       >
         <h2 className="text-xl font-bold text-white">法人動向中心</h2>
-        <p className="text-zinc-500 text-sm mt-1">三大法人買賣超趨勢追蹤</p>
+        <p className="text-zinc-500 text-[13px] mt-1">三大法人買賣超趨勢追蹤</p>
       </motion.div>
 
       {/* ── Three-column grid ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {INSTITUTIONS.map((inst, i) => (
           <InstitutionCard
             key={inst.key}
@@ -274,18 +275,18 @@ export default function InstitutionTracker({ stockData }: Props) {
         transition={{ delay: 0.4, duration: 0.4, ease: 'easeOut' }}
         className="relative rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] backdrop-blur-xl p-4 sm:p-5"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/[0.08] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-white/[0.08] flex items-center justify-center shrink-0">
               <TrendingUp className="w-5 h-5 text-zinc-300" />
             </div>
             <div>
-              <p className="text-zinc-400 text-xs">三大法人合計</p>
+              <p className="text-zinc-400 text-[13px]">三大法人合計</p>
               <p className="text-white font-semibold text-lg">{summary.label}</p>
             </div>
           </div>
           <div
-            className={`text-2xl font-bold ${
+            className={`text-xl sm:text-2xl font-bold ${
               summary.isPositive ? 'text-emerald-400' : 'text-red-400'
             }`}
           >
@@ -300,9 +301,9 @@ export default function InstitutionTracker({ stockData }: Props) {
             const net = vals ? vals.reduce((s, v) => s + v, 0) : 0
             return (
               <div key={inst.key} className="text-center">
-                <p className="text-zinc-500 text-xs mb-1">{inst.name}</p>
+                <p className="text-zinc-500 text-[13px] mb-1">{inst.name}</p>
                 <p
-                  className={`text-sm font-semibold ${
+                  className={`text-sm font-semibold tabular-nums ${
                     net >= 0 ? 'text-emerald-400' : 'text-red-400'
                   }`}
                 >

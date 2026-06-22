@@ -173,7 +173,7 @@ function MetricCard({ metric, value, index }: { metric: MetricDef; value: number
           >
             <Icon size={14} className={hasValue ? '' : 'text-white/20'} />
           </div>
-          <span className="text-xs font-medium text-white/70">{metric.label}</span>
+          <span className="text-[13px] font-medium text-white/70">{metric.label}</span>
         </div>
         <span
           className="text-sm font-bold font-mono tabular-nums"
@@ -184,7 +184,7 @@ function MetricCard({ metric, value, index }: { metric: MetricDef; value: number
       </div>
 
       {/* Progress bar */}
-      <div className="w-full h-2 rounded-full bg-white/[0.06] mb-2 overflow-hidden">
+      <div className="w-full h-2.5 sm:h-3 rounded-full bg-white/[0.06] mb-2 overflow-hidden">
         <motion.div
           className="h-full rounded-full"
           initial={{ width: 0 }}
@@ -198,7 +198,7 @@ function MetricCard({ metric, value, index }: { metric: MetricDef; value: number
       </div>
 
       {/* Interpretation subtext */}
-      <p className="text-[10px] leading-relaxed" style={{ color: interpretation.color }}>
+      <p className="text-[13px] leading-relaxed" style={{ color: interpretation.color }}>
         {interpretation.text}
       </p>
     </motion.div>
@@ -218,7 +218,7 @@ function StockSelector({
 }) {
   const selected = stocks.find((s) => s.id === selectedId)
   return (
-    <div className="relative">
+    <div className="relative w-full sm:w-auto">
       <select
         value={selectedId}
         onChange={(e) => onSelect(e.target.value)}
@@ -291,7 +291,7 @@ export default function ChipAnalysis({ stockData }: Props) {
     : 0
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-3 sm:px-4 py-6 space-y-6">
+    <div className="section-container section-spacing space-y-5 sm:space-y-6">
       {/* ── Header ── */}
       <motion.div
         initial={{ opacity: 0, y: -12 }}
@@ -304,14 +304,14 @@ export default function ChipAnalysis({ stockData }: Props) {
             <PieChart size={22} className="text-[#00E5A8]" />
             籌碼分析中心
           </h2>
-          <p className="text-xs sm:text-sm text-white/50 mt-0.5">
+          <p className="text-[13px] sm:text-sm text-white/50 mt-0.5">
             個股籌碼面深度分析 · 主力、外資、大戶動向一覽
           </p>
         </div>
 
         {/* Stock Count Badge */}
         {stocks.length > 0 && (
-          <div className="flex items-center gap-1.5 text-xs text-white/40 bg-white/[0.04] px-3 py-1.5 rounded-full whitespace-nowrap">
+          <div className="flex items-center gap-1.5 text-[13px] text-white/40 bg-white/[0.04] px-3 py-1.5 rounded-full whitespace-nowrap">
             <BarChart3 size={14} />
             <span>{stocks.length} 檔監控中</span>
           </div>
@@ -327,7 +327,7 @@ export default function ChipAnalysis({ stockData }: Props) {
         >
           <PieChart size={48} className="mb-3 opacity-40" />
           <p className="text-sm">暫無籌碼分析數據</p>
-          <p className="text-xs mt-1">等待數據更新中...</p>
+          <p className="text-[13px] mt-1">等待數據更新中...</p>
         </motion.div>
       ) : (
         <>
@@ -338,14 +338,14 @@ export default function ChipAnalysis({ stockData }: Props) {
             transition={{ duration: 0.4, delay: 0.1 }}
             className="flex flex-col sm:flex-row sm:items-center gap-3"
           >
-            <span className="text-xs font-medium text-white/50">選擇個股</span>
+            <span className="text-[13px] font-medium text-white/50">選擇個股</span>
             <StockSelector
               stocks={stocks.map((s) => ({ id: s.id, name: s.name }))}
               selectedId={effectiveId}
               onSelect={setSelectedId}
             />
             {currentStock && (
-              <span className="text-[10px] text-white/30">
+              <span className="text-[13px] text-white/30">
                 {chipDataCount}/{METRICS.length} 項指標
               </span>
             )}
@@ -364,7 +364,7 @@ export default function ChipAnalysis({ stockData }: Props) {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-white">{currentStock.name || currentStock.id}</h3>
-                <span className="text-[10px] text-white/40 font-mono">{currentStock.id}</span>
+                <span className="text-[13px] text-white/40 font-mono">{currentStock.id}</span>
               </div>
             </motion.div>
           )}
@@ -386,7 +386,7 @@ export default function ChipAnalysis({ stockData }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="flex flex-wrap items-center gap-4 text-[10px] text-white/30"
+            className="flex flex-wrap items-center gap-3 sm:gap-4 text-[13px] text-white/30"
           >
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#00FF88]" />

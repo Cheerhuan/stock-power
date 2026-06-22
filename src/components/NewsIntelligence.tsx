@@ -48,17 +48,17 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
       initial={{ opacity: 0, y: 20, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
-      className="glass rounded-xl p-4 glass-sm-hover cursor-pointer group"
+      className="glass rounded-xl p-4 md:p-5 glass-sm-hover cursor-pointer group"
     >
       <div className="flex gap-3">
         {/* ── Left: Sentiment Badge ── */}
         <div className="flex-shrink-0 flex flex-col items-center gap-1 pt-0.5">
           <div
-            className={`flex items-center justify-center w-8 h-8 rounded-lg border text-[9px] font-bold ${sentiment.badgeClass}`}
+            className={`flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-lg border text-[11px] md:text-[9px] font-bold ${sentiment.badgeClass}`}
           >
-            <SentimentIcon size={14} />
+            <SentimentIcon size={18} className="md:size-[14px]" />
           </div>
-          <span className={`text-[8px] font-semibold ${sentiment.textClass}`}>
+          <span className={`text-[10px] md:text-[8px] font-semibold ${sentiment.textClass}`}>
             {sentiment.label}
           </span>
         </div>
@@ -71,34 +71,34 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
           </h3>
 
           {/* AI Summary */}
-          <p className="text-[11px] text-zinc-500 leading-relaxed line-clamp-3">
+          <p className="text-[13px] md:text-[11px] text-zinc-500 leading-relaxed line-clamp-3">
             {item.summary}
           </p>
 
           {/* ── Bottom Row ── */}
-          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pt-1">
+          <div className="flex items-center flex-wrap gap-x-2 md:gap-x-3 gap-y-1.5 pt-1">
             {/* Source */}
-            <div className="flex items-center gap-1 text-[10px] text-zinc-600">
-              <Newspaper size={10} className="text-zinc-700" />
+            <div className="flex items-center gap-1 text-[12px] md:text-[10px] text-zinc-600">
+              <Newspaper size={12} className="text-zinc-700" />
               <span>{item.source}</span>
             </div>
 
             {/* Time */}
-            <div className="flex items-center gap-1 text-[10px] text-zinc-600">
-              <Clock size={10} className="text-zinc-700" />
+            <div className="flex items-center gap-1 text-[12px] md:text-[10px] text-zinc-600">
+              <Clock size={12} className="text-zinc-700" />
               <span>{item.time}</span>
             </div>
 
             {/* Industry Tag */}
             {item.industry && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#00E5A8]/8 text-[#00E5A8] border border-[#00E5A8]/12">
+              <span className="text-[11px] md:text-[9px] px-1.5 py-0.5 rounded-full bg-[#00E5A8]/8 text-[#00E5A8] border border-[#00E5A8]/12">
                 {item.industry}
               </span>
             )}
 
             {/* Sentiment Score Badge */}
             <span
-              className={`ml-auto text-[10px] font-bold font-mono ${getScoreColor(item.score)}`}
+              className={`ml-auto text-[12px] md:text-[10px] font-bold font-mono ${getScoreColor(item.score)}`}
             >
               {item.score}
             </span>
@@ -114,7 +114,7 @@ function NewsSkeleton() {
   return (
     <div className="space-y-3">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="glass rounded-xl p-4">
+        <div key={i} className="glass rounded-xl p-4 md:p-5">
           <div className="flex gap-3">
             <div className="w-8 h-8 rounded-lg skeleton flex-shrink-0" />
             <div className="flex-1 space-y-2">
@@ -172,7 +172,7 @@ export default function NewsIntelligence({ stockData }: Props) {
 
   return (
     <section className="py-8">
-      <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
+      <div className="section-container section-spacing">
         {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
@@ -205,10 +205,10 @@ export default function NewsIntelligence({ stockData }: Props) {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="flex items-center gap-3 mb-4 text-[10px]"
+            className="flex flex-wrap items-center gap-2 md:gap-3 mb-3 md:mb-4 text-[11px] md:text-[10px]"
           >
             <span className="text-zinc-500 font-medium">新聞情緒</span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <span className="flex items-center gap-1 text-[#00FF88]">
                 <TrendingUp size={11} />
                 {positiveCount} 利多
@@ -239,7 +239,7 @@ export default function NewsIntelligence({ stockData }: Props) {
               <button
                 key={tab.key}
                 onClick={() => setActiveFilter(tab.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 min-h-10 rounded-lg text-[10px] font-medium whitespace-nowrap transition-all ${
                   isActive
                     ? 'bg-[#00E5A8]/10 text-[#00E5A8] border border-[#00E5A8]/20'
                     : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
@@ -261,7 +261,7 @@ export default function NewsIntelligence({ stockData }: Props) {
         </motion.div>
 
         {/* ── News Cards ── */}
-        <div className="space-y-3">
+        <div className="space-y-2 md:space-y-3">
           {news.length === 0 ? (
             <NewsSkeleton />
           ) : filteredNews.length === 0 ? (

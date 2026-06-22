@@ -30,7 +30,7 @@ export default function StockPowerPage() {
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#080B11]">
       <div className="text-center">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#00E5A8] to-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#00E5A8]/20 animate-pulse">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00E5A8] to-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#00E5A8]/20 animate-pulse">
           <span className="text-sm font-black text-[#080B11]">SP</span>
         </div>
         <div className="text-xs text-zinc-600 font-mono">Initializing AI Engine...</div>
@@ -40,10 +40,10 @@ export default function StockPowerPage() {
 
   if (!stockData) return (
     <div className="min-h-screen flex items-center justify-center bg-[#080B11]">
-      <div className="glass rounded-2xl p-8 text-center max-w-sm">
+      <div className="glass rounded-2xl p-8 text-center max-w-xs">
         <BarChart3 className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
         <div className="text-sm text-zinc-500">Unable to load market data</div>
-        <button onClick={() => window.location.reload()} className="mt-4 text-[10px] text-[#00E5A8] hover:underline">
+        <button onClick={() => window.location.reload()} className="mt-4 text-xs text-[#00E5A8] hover:underline">
           Retry
         </button>
       </div>
@@ -59,16 +59,15 @@ export default function StockPowerPage() {
       {/* Top Navigation */}
       <TopNav activeNav={activeNav} setActiveNav={setActiveNav} />
 
-      {/* Main Content */}
+      {/* Main Content — each section handles its own container */}
       <main className="relative z-10 pb-safe">
-        {/* Always show Hero on top */}
         <HeroSection stockData={stockData} />
 
         <AnimatePresence mode="wait">
           {activeNav === 'dashboard' && (
             <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <MarketOverview stockData={stockData} />
-              <AISignalCenter stockData={stockData} />
+              <AISignalCenter stockData={stockData} showInitial={8} />
               <InstitutionTracker stockData={stockData} />
               <NewsIntelligence stockData={stockData} />
             </motion.div>
@@ -83,7 +82,7 @@ export default function StockPowerPage() {
 
           {activeNav === 'ai_signals' && (
             <motion.div key="ai" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              <AISignalCenter stockData={stockData} />
+              <AISignalCenter stockData={stockData} showInitial={12} />
               <FamousInvestors stockData={stockData} />
             </motion.div>
           )}
@@ -109,9 +108,9 @@ export default function StockPowerPage() {
         </AnimatePresence>
 
         {/* Footer */}
-        <footer className="py-8 border-t border-white/5 mt-8">
-          <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
-            <div className="flex items-center justify-between text-[10px] text-zinc-700">
+        <footer className="py-6 md:py-8 border-t border-white/5 mt-6 md:mt-8">
+          <div className="section-container">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-[11px] text-zinc-700">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-3 h-3 text-zinc-700" />
                 <span>Stock Power AI — AI 投資決策平台</span>
