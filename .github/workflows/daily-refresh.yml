@@ -1,0 +1,37 @@
+name: Daily Data Refresh + Deploy
+
+on:
+  schedule:
+    # 每天 15:00 UTC = 23:00 Taipei (收盤後)
+    - cron: '0 15 * * 1-5'
+  workflow_dispatch: # 手動觸發
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fetch TWSE daily data
+        run: python scripts/update-stock-data.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "Stock Power Bot"
+          git config user.email "bot@stockpower.ai"
+          git add public/stock-data.json
+          git diff --cached --quiet || git commit -m "chore: auto-update stock data $(date +%Y-%m-%d)"
+          git push
+  deploy:
+    needs: refresh
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

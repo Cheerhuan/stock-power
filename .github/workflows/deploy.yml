@@ -3,6 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: ["main"]
+  workflow_call:  # 可被 daily-refresh.yml 呼叫
 
 permissions:
   contents: read
