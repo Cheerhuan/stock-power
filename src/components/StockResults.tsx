@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import StockList from './StockList';
@@ -28,6 +28,163 @@ export default function StockResults({
   stockData,
   liveStocks,
 }: StockResultsProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  /* ── Mobile: stacked mode ── */
+  if (isMobile) {
+    if (selectedStock) {
+      return (
+        <div style={{ height: '100vh', overflow: 'hidden', background: '#0B0F17' }}>
+          {/* Mobile detail header */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '12px 16px',
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              minHeight: 52,
+              flexShrink: 0,
+            }}
+          >
+            <button
+              onClick={onBack}
+              aria-label="Back to list"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                border: 'none',
+                background: 'rgba(255,255,255,0.06)',
+                color: '#B0B3C6',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#E8E9ED',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  lineHeight: 1.2,
+                }}
+              >
+                {selectedStock.name || selectedStock.id}
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: '#5A5D6B',
+                  fontFamily: 'monospace',
+                  lineHeight: 1.2,
+                }}
+              >
+                {selectedStock.id}
+              </div>
+            </div>
+          </div>
+          {/* Scrollable detail */}
+          <div style={{ flex: 1, overflowY: 'auto', height: 'calc(100vh - 53px)' }}>
+            <StockDetail stock={selectedStock} stockData={stockData} />
+          </div>
+        </div>
+      );
+    }
+
+    // Mobile: list view full screen
+    return (
+      <div style={{ height: '100vh', overflow: 'hidden', background: '#0B0F17' }}>
+        {/* Mobile list header */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '12px 16px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            minHeight: 52,
+            flexShrink: 0,
+          }}
+        >
+          <button
+            onClick={onBack}
+            aria-label="Back to search"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              border: 'none',
+              background: 'rgba(255,255,255,0.06)',
+              color: '#B0B3C6',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            <ArrowLeft size={18} />
+          </button>
+          {selectedStock && (
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#E8E9ED',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  lineHeight: 1.2,
+                }}
+              >
+                {selectedStock.name || selectedStock.id}
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: '#5A5D6B',
+                  fontFamily: 'monospace',
+                  lineHeight: 1.2,
+                }}
+              >
+                {selectedStock.id}
+              </div>
+            </div>
+          )}
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', height: 'calc(100vh - 53px)' }}>
+          <StockList
+            query={query}
+            results={results}
+            selectedStock={selectedStock}
+            onSelectStock={onSelectStock}
+            allStocks={allStocks}
+            recentStocks={recentStocks}
+            stockData={stockData}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Desktop: side-by-side mode ── */
   return (
     <div
       style={{
