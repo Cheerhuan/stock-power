@@ -1,0 +1,127 @@
+{
+  "2330": {
+    "id": "2330",
+    "name": "TSMC",
+    "price": "1040",
+    "change": 1.2,
+    "grade": "A+",
+    "summary": "Strong Buy: High growth + Heavy Institutional support.",
+    "details": {
+      "fundamental": {
+        "pe": 22.5,
+        "pb": 6.1,
+        "growth": 15.4,
+        "conclusion": "POSITIVE"
+      },
+      "chip": {
+        "net_buy": 500000000,
+        "trend": "Increasing",
+        "conclusion": "POSITIVE"
+      },
+      "technical": {
+        "trend": "Bullish",
+        "conclusion": "POSITIVE"
+      }
+    }
+  },
+  "2317": {
+    "id": "2317",
+    "name": "Foxconn",
+    "price": "185",
+    "change": -0.5,
+    "grade": "D",
+    "summary": "Avoid: Weak fundamentals and institutional selling.",
+    "details": {
+      "fundamental": {
+        "pe": 12.1,
+        "pb": 1.1,
+        "growth": 4.2,
+        "conclusion": "POSITIVE"
+      },
+      "chip": {
+        "net_buy": -120000000,
+        "trend": "Stable",
+        "conclusion": "NEGATIVE"
+      },
+      "technical": {
+        "trend": "Bearish",
+        "conclusion": "NEGATIVE"
+      }
+    }
+  },
+  "2454": {
+    "id": "2454",
+    "name": "MediaTek",
+    "price": "1720",
+    "change": 2.1,
+    "grade": "A+",
+    "summary": "Strong Buy: High growth + Heavy Institutional support.",
+    "details": {
+      "fundamental": {
+        "pe": 18.2,
+        "pb": 4.5,
+        "growth": 22.1,
+        "conclusion": "POSITIVE"
+      },
+      "chip": {
+        "net_buy": 800000000,
+        "trend": "Increasing",
+        "conclusion": "POSITIVE"
+      },
+      "technical": {
+        "trend": "Bullish",
+        "conclusion": "POSITIVE"
+      }
+    }
+  },
+  "2303": {
+    "id": "2303",
+    "name": "Umc",
+    "price": "112",
+    "change": -1.1,
+    "grade": "D",
+    "summary": "Avoid: Weak fundamentals and institutional selling.",
+    "details": {
+      "fundamental": {
+        "pe": 10.5,
+        "pb": 0.9,
+        "growth": -2.1,
+        "conclusion": "NEGATIVE"
+      },
+      "chip": {
+        "net_buy": -400000000,
+        "trend": "Decreasing",
+        "conclusion": "NEGATIVE"
+      },
+      "technical": {
+        "trend": "Bearish",
+        "conclusion": "NEGATIVE"
+      }
+    }
+  },
+  "2382": {
+    "id": "2382",
+    "name": "Hon Hai",
+    "price": "190",
+    "change": 0.3,
+    "grade": "C",
+    "summary": "Watch: Conflicting signals or stagnant growth.",
+    "details": {
+      "fundamental": {
+        "pe": 11.8,
+        "pb": 1.2,
+        "growth": 3.1,
+        "conclusion": "POSITIVE"
+      },
+      "chip": {
+        "net_buy": 10000000,
+        "trend": "Stable",
+        "conclusion": "POSITIVE"
+      },
+      "technical": {
+        "trend": "Bullish",
+        "conclusion": "POSITIVE"
+      }
+    }
+  }
+}
