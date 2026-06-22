@@ -1,60 +1,130 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
-import { createChart, ColorType, CandlestickSeries, LineSeries } from 'lightweight-charts';
 
-export default function StockChart({ stock }: { stock: any }) {
-  const chartRef = useRef<HTMLDivElement>(null);
-  const prices = stock?.prices || [];
+import React, { useEffect, useRef } from 'react';
+import { createChart, ColorType, AreaSeries, LineSeries } from 'lightweight-charts';
+
+/* ── Types ── */
+interface StockChartProps {
+  height?: number;
+  days?: number;
+  color?: string;
+}
+
+/* ── Helpers ── */
+
+/** Generate random walk price data starting from 950 */
+function generateRandomWalk(days: number): { time: string; value: number }[] {
+  const data: { time: string; value: number }[] = [];
+  let price = 950;
+  const now = new Date();
+
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    // Random walk: daily change between -2% and +2%
+    const change = price * (Math.random() - 0.5) * 0.04;
+    price += change;
+    data.push({
+      time: date.toISOString().split('T')[0],
+      value: Math.round(price * 100) / 100,
+    });
+  }
+
+  return data;
+}
+
+/* ── Component ── */
+export default function StockChart({
+  height = 320,
+  days = 120,
+  color = '#5B8CFF',
+}: StockChartProps) {
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!chartRef.current || prices.length < 2) return;
+    const container = chartContainerRef.current;
+    if (!container) return;
 
-    const chart = createChart(chartRef.current, {
-      layout: { background: { type: ColorType.Solid, color: '#09090b' }, textColor: '#a1a1aa', fontSize: 11 },
-      grid: { vertLines: { color: '#18181b' }, horzLines: { color: '#18181b' } },
-      width: chartRef.current.clientWidth,
-      height: 320,
-      timeScale: { borderVisible: false, timeVisible: true },
-      rightPriceScale: { borderVisible: false },
-      crosshair: { vertLine: { color: '#52525b', style: 2 }, horzLine: { color: '#52525b', style: 2 } },
+    /* ── Generate data ── */
+    const data = generateRandomWalk(days);
+
+    /* ── Create chart ── */
+    const chart = createChart(container, {
+      width: container.clientWidth,
+      height,
+      layout: {
+        background: { type: ColorType.Solid, color: 'transparent' },
+        textColor: 'transparent',
+      },
+      grid: {
+        vertLines: { visible: false },
+        horzLines: { visible: false },
+      },
+      crosshair: {
+        mode: 0,
+        vertLine: { visible: false, labelVisible: false },
+        horzLine: { visible: false, labelVisible: false },
+      },
+      rightPriceScale: {
+        visible: false,
+        borderVisible: false,
+      },
+      leftPriceScale: {
+        visible: false,
+        borderVisible: false,
+      },
+      timeScale: {
+        visible: false,
+        borderVisible: false,
+      },
+      handleScroll: false,
+      handleScale: false,
     });
 
-    // Use daily timestamps (seconds since epoch) — no ambiguity
-    const baseTs = Math.floor(new Date(2026, 4, 1).getTime() / 1000); // May 1, 2026
-
-    const candleData = prices.slice(0, 60).map((p: number, i: number) => {
-      const o = p * (1 + (Math.random() - 0.5) * 0.02);
-      const c = p * (1 + (Math.random() - 0.5) * 0.02);
-      return {
-        time: baseTs + i * 86400, // +1 day per candle
-        open: o,
-        high: Math.max(o, c) * 1.005,
-        low: Math.min(o, c) * 0.995,
-        close: c,
-      };
+    /* ── Add area series with gradient fill ── */
+    const areaSeries = chart.addSeries(AreaSeries, {
+      lineColor: color,
+      topColor: color,
+      bottomColor: 'transparent',
+      lineWidth: 2,
+      crosshairMarkerVisible: false,
+      priceLineVisible: false,
+      lastValueVisible: false,
+      priceFormat: {
+        type: 'price',
+        precision: 2,
+        minMove: 0.01,
+      },
     });
-    candleData[candleData.length - 1].close = prices[prices.length - 1];
 
-    const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#10b981', downColor: '#f43f5e', borderVisible: false,
-      wickUpColor: '#10b981', wickDownColor: '#f43f5e',
-    });
-    candleSeries.setData(candleData);
+    areaSeries.setData(data);
 
-    // MA5
-    const ma5 = chart.addSeries(LineSeries, { color: '#818cf8', lineWidth: 1, lineStyle: 1 });
-    const ma5Data = candleData.map((d: any, i: number) => {
-      const vals = candleData.slice(Math.max(0, i - 4), i + 1).map((x: any) => x.close);
-      return { time: d.time, value: vals.reduce((a: number, b: number) => a + b, 0) / vals.length };
-    });
-    ma5.setData(ma5Data);
+    /* ── Responsive resize ── */
+    const handleResize = () => {
+      if (container) {
+        chart.applyOptions({ width: container.clientWidth });
+      }
+    };
 
-    chart.timeScale().fitContent();
+    window.addEventListener('resize', handleResize);
 
-    const resize = () => { if (chartRef.current) chart.applyOptions({ width: chartRef.current.clientWidth }); };
-    window.addEventListener('resize', resize);
-    return () => { window.removeEventListener('resize', resize); chart.remove(); };
-  }, [prices]);
+    /* ── Cleanup ── */
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      chart.remove();
+    };
+  }, [height, days, color]);
 
-  return <div ref={chartRef} className="w-full" />;
+  return (
+    <div
+      ref={chartContainerRef}
+      style={{
+        width: '100%',
+        height,
+        borderRadius: '16px',
+        overflow: 'hidden',
+        background: '#0B0F17',
+      }}
+    />
+  );
 }

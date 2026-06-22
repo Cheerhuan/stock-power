@@ -1,24 +1,20 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import TopNav from '@/components/TopNav';
-import HeroSection from '@/components/HeroSection';
-import MarketOverview from '@/components/MarketOverview';
-import AISignalCenter from '@/components/AISignalCenter';
-import FamousInvestors from '@/components/FamousInvestors';
-import InstitutionTracker from '@/components/InstitutionTracker';
-import ChipAnalysis from '@/components/ChipAnalysis';
-import NewsIntelligence from '@/components/NewsIntelligence';
-import PortfolioDashboard from '@/components/PortfolioDashboard';
+import React, { useState, useEffect, useCallback } from 'react';
+import SearchHero from '@/components/SearchHero';
+import CommandPalette from '@/components/CommandPalette';
+import StockResults from '@/components/StockResults';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BarChart3, TrendingUp } from 'lucide-react';
-
-type NavSection = string;
 
 export default function StockPowerPage() {
   const [stockData, setStockData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeNav, setActiveNav] = useState<NavSection>('dashboard');
+  const [query, setQuery] = useState('');
+  const [selectedStock, setSelectedStock] = useState<any>(null);
+  const [mode, setMode] = useState<'search' | 'results'>('search');
+  const [showCmdPalette, setShowCmdPalette] = useState(false);
+  const [recentStocks, setRecentStocks] = useState<any[]>([]);
 
+  // Load data
   useEffect(() => {
     fetch('/stock-power/stock-data.json')
       .then(r => r.json())
@@ -27,99 +23,144 @@ export default function StockPowerPage() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#080B11]">
-      <div className="text-center">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00E5A8] to-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#00E5A8]/20 animate-pulse">
-          <span className="text-sm font-black text-[#080B11]">SP</span>
-        </div>
-        <div className="text-xs text-zinc-600 font-mono">Initializing AI Engine...</div>
-      </div>
-    </div>
-  );
+  // Load recent from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('sp_recent');
+      if (saved) setRecentStocks(JSON.parse(saved));
+    } catch {}
+  }, []);
 
-  if (!stockData) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#080B11]">
-      <div className="glass rounded-2xl p-8 text-center max-w-xs">
-        <BarChart3 className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
-        <div className="text-sm text-zinc-500">Unable to load market data</div>
-        <button onClick={() => window.location.reload()} className="mt-4 text-xs text-[#00E5A8] hover:underline">
-          Retry
-        </button>
+  // ⌘K / Ctrl+K handler
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCmdPalette(prev => !prev);
+      }
+      if (e.key === 'Escape') {
+        setShowCmdPalette(false);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // Get all stocks as flat array
+  const allStocks = React.useMemo(() => {
+    if (!stockData) return [];
+    return Object.entries(stockData)
+      .filter(([k]) => !k.startsWith('_'))
+      .map(([_, v]) => v as any)
+      .filter(v => v && v.id && v.price);
+  }, [stockData]);
+
+  // Search logic
+  const searchStocks = useCallback((q: string) => {
+    if (!q.trim() || !allStocks.length) return [];
+    const lower = q.toLowerCase();
+    return allStocks.filter(s => {
+      const id = String(s.id || '').toLowerCase();
+      const name = String(s.name || '').toLowerCase();
+      return id.includes(lower) || name.includes(lower);
+    }).slice(0, 20);
+  }, [allStocks]);
+
+  // Handle stock selection
+  const handleSelectStock = useCallback((stock: any) => {
+    setSelectedStock(stock);
+    setMode('results');
+    // Add to recent
+    setRecentStocks(prev => {
+      const filtered = prev.filter(s => s.id !== stock.id);
+      const next = [stock, ...filtered].slice(0, 10);
+      try { localStorage.setItem('sp_recent', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  // Handle search submit
+  const handleSearch = useCallback((q: string) => {
+    setQuery(q);
+    const results = searchStocks(q);
+    if (results.length > 0) {
+      handleSelectStock(results[0]);
+    } else {
+      setMode('results');
+    }
+  }, [searchStocks, handleSelectStock]);
+
+  const handleBack = useCallback(() => {
+    setMode('search');
+    setQuery('');
+    setSelectedStock(null);
+  }, []);
+
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0B0F17' }}>
+      <div className="text-center">
+        <div className="w-10 h-10 mx-auto mb-4 rounded-xl flex items-center justify-center"
+          style={{ background: 'linear-gradient(135deg, #5B8CFF, #8B5CFF)' }}>
+          <span className="text-xs font-black text-white">SP</span>
+        </div>
+        <div className="text-xs font-mono" style={{ color: '#5A5D6B' }}>Initializing...</div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#080B11]">
-      {/* Background glows */}
-      <div className="bg-glow-1" />
-      <div className="bg-glow-2" />
+    <div style={{ background: '#0B0F17' }}>
+      {/* Command Palette */}
+      <CommandPalette
+        isOpen={showCmdPalette}
+        onClose={() => setShowCmdPalette(false)}
+        stocks={allStocks}
+        onSelectStock={handleSelectStock}
+        activeNav={mode === 'results' ? 'results' : 'search'}
+        onNavigate={(page) => {
+          if (page === 'back') handleBack();
+          setShowCmdPalette(false);
+        }}
+      />
 
-      {/* Top Navigation */}
-      <TopNav activeNav={activeNav} setActiveNav={setActiveNav} />
-
-      {/* Main Content — each section handles its own container */}
-      <main className="relative z-10 pb-safe">
-        <HeroSection stockData={stockData} />
-
-        <AnimatePresence mode="wait">
-          {activeNav === 'dashboard' && (
-            <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              <MarketOverview stockData={stockData} />
-              <AISignalCenter stockData={stockData} showInitial={8} />
-              <InstitutionTracker stockData={stockData} />
-              <NewsIntelligence stockData={stockData} />
-            </motion.div>
-          )}
-
-          {activeNav === 'market' && (
-            <motion.div key="market" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              <MarketOverview stockData={stockData} />
-              <InstitutionTracker stockData={stockData} />
-            </motion.div>
-          )}
-
-          {activeNav === 'ai_signals' && (
-            <motion.div key="ai" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              <AISignalCenter stockData={stockData} showInitial={12} />
-              <FamousInvestors stockData={stockData} />
-            </motion.div>
-          )}
-
-          {activeNav === 'strategies' && (
-            <motion.div key="strategies" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              <FamousInvestors stockData={stockData} />
-              <ChipAnalysis stockData={stockData} />
-            </motion.div>
-          )}
-
-          {activeNav === 'portfolio' && (
-            <motion.div key="portfolio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              <PortfolioDashboard stockData={stockData} />
-            </motion.div>
-          )}
-
-          {activeNav === 'news' && (
-            <motion.div key="news" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              <NewsIntelligence stockData={stockData} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Footer */}
-        <footer className="py-6 md:py-8 border-t border-white/5 mt-6 md:mt-8">
-          <div className="section-container">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-[11px] text-zinc-700">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-3 h-3 text-zinc-700" />
-                <span>Stock Power AI — AI 投資決策平台</span>
-              </div>
-              <span>© 2026 · Powered by AI · Data for reference only</span>
-            </div>
-          </div>
-        </footer>
-      </main>
+      <AnimatePresence mode="wait">
+        {mode === 'search' ? (
+          <motion.div
+            key="search"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.25 }}
+          >
+            <SearchHero
+              onSearch={handleSearch}
+              onSelectStock={handleSelectStock}
+              recentStocks={recentStocks}
+              allStocks={allStocks}
+              stockData={stockData}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <StockResults
+              query={query}
+              results={searchStocks(query)}
+              selectedStock={selectedStock}
+              onSelectStock={handleSelectStock}
+              onBack={handleBack}
+              allStocks={allStocks}
+              recentStocks={recentStocks}
+              stockData={stockData}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
