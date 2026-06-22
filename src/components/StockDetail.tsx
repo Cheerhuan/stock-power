@@ -88,25 +88,35 @@ const INVESTORS = [
 /* ─── mini circular gauge ─────────────────────────────────── */
 function CircularGauge({
   score,
+  advice: adviceProp,
   size = 120,
   strokeWidth = 8,
 }: {
-  score: number; // 0–100
+  score: number | null; // 0–100 or null
+  advice?: string | null;
   size?: number;
   strokeWidth?: number;
 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const mapped = (score / 100) * 10; // 0-10 scale
-  const progress = score / 100;
+  const safeScore = score ?? 0;
+  const mapped = (safeScore / 100) * 10; // 0-10 scale
+  const progress = safeScore / 100;
   const offset = circumference * (1 - progress);
 
   let advice: string;
   let adviceColor: string;
-  if (score >= 80) { advice = '強力買入'; adviceColor = '#00D26A'; }
-  else if (score >= 60) { advice = '買入'; adviceColor = '#5B8CFF'; }
-  else if (score >= 40) { advice = '持有'; adviceColor = '#FFD700'; }
-  else if (score >= 20) { advice = '賣出'; adviceColor = '#FF8C00'; }
+  if (adviceProp) {
+    advice = adviceProp;
+    if (/強力買入|strong.*buy/i.test(adviceProp)) adviceColor = '#00D26A';
+    else if (/買入|buy/i.test(adviceProp)) adviceColor = '#5B8CFF';
+    else if (/持有|hold/i.test(adviceProp)) adviceColor = '#FFD700';
+    else if (/賣出|sell/i.test(adviceProp)) adviceColor = '#FF8C00';
+    else adviceColor = '#FF4D6D';
+  } else if (safeScore >= 80) { advice = '強力買入'; adviceColor = '#00D26A'; }
+  else if (safeScore >= 60) { advice = '買入'; adviceColor = '#5B8CFF'; }
+  else if (safeScore >= 40) { advice = '持有'; adviceColor = '#FFD700'; }
+  else if (safeScore >= 20) { advice = '賣出'; adviceColor = '#FF8C00'; }
   else { advice = '強力賣出'; adviceColor = '#FF4D6D'; }
 
   return (
@@ -230,26 +240,27 @@ export default function StockDetail({
   const name = stock?.name ?? '台積電';
   const ticker = stock?.ticker ?? '2330.TW';
   const price = stock?.price ?? LATEST_PRICE;
-  const change = stock?.change ?? DEMO_CHANGE;
+  const change = stock?.changePct ?? DEMO_CHANGE;
   const isUp = change >= 0;
 
-  const pe = stock?.pe ?? DEMO_PE;
-  const eps = stock?.eps ?? DEMO_EPS;
-  const yield_ = stock?.dividend_yield ?? DEMO_YIELD;
-  const revGrowth = stock?.revenue_growth ?? DEMO_REV_GROWTH;
-  const foreignOwn = stock?.foreign_ownership ?? DEMO_FOREIGN;
-  const marginRatio = stock?.margin_ratio ?? DEMO_MARGIN;
+  const pe = stock?.pe ?? null;
+  const eps = stock?.eps ?? null;
+  const yield_ = stock?.dividend_yield ?? null;
+  const revGrowth = stock?.revenue_growth ?? null;
+  const foreignOwn = stock?.foreign_position ?? null;
+  const marginRatio = stock?.margin_ratio ?? null;
 
-  const score = stock?.score != null ? (stock.score / 6) * 100 : DEMO_SCORE;
-  const risk = stock?.risk_score ?? DEMO_RISK;
+  const score = stock?.score != null ? (stock.score / 6) * 100 : null;
+  const risk = stock?.risk_score ?? null;
+  const advice = stock?.advice ?? null;
 
   const stats = [
-    { label: '本益比', value: fmt(pe, 1), trend: pe < 20 ? 1 : pe > 30 ? -1 : 0 },
-    { label: 'EPS', value: `$${fmt(eps)}`, trend: eps > 5 ? 1 : -1 },
-    { label: '殖利率', value: pct(yield_), trend: yield_ > 3 ? 1 : yield_ > 1 ? 0 : -1 },
-    { label: '營收成長', value: pct(revGrowth), trend: revGrowth > 10 ? 1 : revGrowth > 0 ? 0 : -1 },
-    { label: '外資占比', value: fmt(foreignOwn, 1) + '%', trend: foreignOwn > 40 ? 1 : -1 },
-    { label: '融資比', value: fmt(marginRatio, 1) + '%', trend: marginRatio < 30 ? 1 : -1 },
+    { label: '本益比', value: pe != null ? fmt(pe, 1) : '—', trend: pe != null ? (pe < 20 ? 1 : pe > 30 ? -1 : 0) : 0 },
+    { label: 'EPS', value: eps != null ? `$${fmt(eps)}` : '—', trend: eps != null ? (eps > 5 ? 1 : -1) : 0 },
+    { label: '殖利率', value: yield_ != null ? pct(yield_) : '—', trend: yield_ != null ? (yield_ > 3 ? 1 : yield_ > 1 ? 0 : -1) : 0 },
+    { label: '營收成長', value: revGrowth != null ? pct(revGrowth) : '—', trend: revGrowth != null ? (revGrowth > 10 ? 1 : revGrowth > 0 ? 0 : -1) : 0 },
+    { label: '外資占比', value: foreignOwn != null ? fmt(foreignOwn, 1) + '%' : '—', trend: foreignOwn != null ? (foreignOwn > 40 ? 1 : -1) : 0 },
+    { label: '融資比', value: marginRatio != null ? fmt(marginRatio, 1) + '%' : '—', trend: marginRatio != null ? (marginRatio < 30 ? 1 : -1) : 0 },
   ];
 
   const sentimentColors: Record<string, string> = {
@@ -351,28 +362,28 @@ export default function StockDetail({
         </div>
         <div className="flex items-center justify-around">
           <div className="relative flex flex-col items-center">
-            <CircularGauge score={score} size={110} strokeWidth={7} />
+            <CircularGauge score={score} advice={advice} size={110} strokeWidth={7} />
           </div>
           <div className="flex flex-col items-center gap-1">
             <span className="text-xs text-zinc-400">風險評分</span>
             <div className="w-28 h-2 bg-zinc-800 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${risk}%` }}
+                animate={{ width: `${risk ?? 0}%` }}
                 transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
                 className="h-full rounded-full"
                 style={{
-                  backgroundColor: risk < 30 ? '#00D26A' : risk < 60 ? '#FFD700' : '#FF4D6D',
+                  backgroundColor: risk != null ? (risk < 30 ? '#00D26A' : risk < 60 ? '#FFD700' : '#FF4D6D') : '#71717a',
                 }}
               />
             </div>
             <span
               className="text-lg font-bold font-mono mt-1"
               style={{
-                color: risk < 30 ? '#00D26A' : risk < 60 ? '#FFD700' : '#FF4D6D',
+                color: risk != null ? (risk < 30 ? '#00D26A' : risk < 60 ? '#FFD700' : '#FF4D6D') : '#71717a',
               }}
             >
-              {risk}/100
+              {risk != null ? `${risk}/100` : '—'}
             </span>
             <span className="text-[10px] text-zinc-500">低風險 → 高風險</span>
           </div>
@@ -423,10 +434,21 @@ export default function StockDetail({
           <span className="text-sm font-semibold text-white">三大法人</span>
         </div>
         <div className="space-y-2.5">
-          {INSTITUTIONS.map((inst) => {
+          {(stock?.inst_net
+            ? [
+                { label: '外資', netBuy: stock.inst_net.foreign ?? 0, color: '#00D26A' },
+                { label: '投信', netBuy: stock.inst_net.investment_trust ?? 0, color: '#00D26A' },
+                { label: '自營商', netBuy: stock.inst_net.dealer ?? 0, color: '#FF4D6D' },
+              ]
+            : INSTITUTIONS
+          ).map((inst) => {
             const absVal = Math.abs(inst.netBuy);
-            const maxAbs = Math.max(...INSTITUTIONS.map((i) => Math.abs(i.netBuy)));
-            const barWidth = (absVal / maxAbs) * 100;
+            const maxVal = Math.max(...(
+              stock?.inst_net
+                ? [Math.abs(stock.inst_net.foreign ?? 0), Math.abs(stock.inst_net.investment_trust ?? 0), Math.abs(stock.inst_net.dealer ?? 0)]
+                : INSTITUTIONS.map((i) => Math.abs(i.netBuy))
+            ), 1);
+            const barWidth = (absVal / maxVal) * 100;
             const isPositive = inst.netBuy >= 0;
             return (
               <div key={inst.label} className="flex items-center gap-3">
@@ -474,7 +496,7 @@ export default function StockDetail({
           <span className="text-sm font-semibold text-white">新聞動態</span>
         </div>
         <div className="space-y-2">
-          {NEWS_ITEMS.map((news, i) => {
+          {(stockData?._news ?? NEWS_ITEMS).map((news: any, i: number) => {
             const isExpanded = expandedNews === i;
             return (
               <motion.div
@@ -542,12 +564,12 @@ export default function StockDetail({
           <span className="text-sm font-semibold text-white">AI 共識 — 誰會買這檔？</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {INVESTORS.map((inv) => (
+          {(stock?.consensus ?? INVESTORS).map((inv: any, idx: number) => (
             <motion.div
-              key={inv.key}
+              key={inv.key ?? idx}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.35 + INVESTORS.indexOf(inv) * 0.06 }}
+              transition={{ delay: 0.35 + idx * 0.06 }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all ${
                 inv.match
                   ? 'border-[rgba(255,255,255,0.12)] bg-white/5'
@@ -556,7 +578,7 @@ export default function StockDetail({
             >
               <span
                 className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: inv.color }}
+                style={{ backgroundColor: inv.color ?? '#5B8CFF' }}
               />
               <span className={inv.match ? 'text-zinc-300' : 'text-zinc-600'}>
                 {inv.name}

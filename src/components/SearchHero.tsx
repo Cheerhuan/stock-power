@@ -14,6 +14,7 @@ interface Props {
   recentStocks: any[];
   allStocks: any[];
   stockData: any;
+  liveCount?: number;
 }
 
 /* ── Helpers ── */
@@ -41,6 +42,7 @@ export default function SearchHero({
   recentStocks,
   allStocks,
   stockData,
+  liveCount,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -174,6 +176,11 @@ export default function SearchHero({
           <p className="text-base sm:text-lg mt-3" style={{ color: '#5A5D6B' }}>
             搜尋股票代號、公司名稱、ETF
           </p>
+          {liveCount != null && liveCount > 0 && (
+            <p className="text-xs mt-2" style={{ color: '#6B7280' }}>
+              即時資料 · {liveCount.toLocaleString()} 檔可搜尋
+            </p>
+          )}
         </motion.div>
 
         {/* ── Search Input ── */}

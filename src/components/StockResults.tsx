@@ -14,6 +14,7 @@ interface StockResultsProps {
   allStocks: any[];
   recentStocks: any[];
   stockData: any;
+  liveStocks?: any[];
 }
 
 export default function StockResults({
@@ -25,6 +26,7 @@ export default function StockResults({
   allStocks,
   recentStocks,
   stockData,
+  liveStocks,
 }: StockResultsProps) {
   return (
     <div

@@ -4,23 +4,58 @@ import SearchHero from '@/components/SearchHero';
 import CommandPalette from '@/components/CommandPalette';
 import StockResults from '@/components/StockResults';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fetchAllStocks, searchStocks, clearCache, type TWSEStock } from '@/lib/twse';
 
 export default function StockPowerPage() {
-  const [stockData, setStockData] = useState<any>(null);
+  const [stockData, setStockData] = useState<any>(null);       // 靜態 metadata
+  const [liveStocks, setLiveStocks] = useState<TWSEStock[]>([]); // 即時資料
   const [isLoading, setIsLoading] = useState(true);
+  const [isLiveError, setIsLiveError] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedStock, setSelectedStock] = useState<any>(null);
   const [mode, setMode] = useState<'search' | 'results'>('search');
   const [showCmdPalette, setShowCmdPalette] = useState(false);
   const [recentStocks, setRecentStocks] = useState<any[]>([]);
 
-  // Load data
+  // Load static metadata & live prices
   useEffect(() => {
-    fetch('/stock-power/stock-data.json')
-      .then(r => r.json())
-      .then(d => setStockData(d))
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
+    let cancelled = false;
+    const load = async () => {
+      // 1. Load static metadata (fallback)
+      try {
+        const r = await fetch('/stock-power/stock-data.json');
+        const d = await r.json();
+        if (!cancelled) setStockData(d);
+      } catch {}
+
+      // 2. Fetch live data from TWSE
+      try {
+        const result = await fetchAllStocks();
+        if (!cancelled) {
+          setLiveStocks(result.stocks);
+          setIsLiveError(false);
+        }
+      } catch {
+        if (!cancelled) setIsLiveError(true);
+      }
+
+      if (!cancelled) setIsLoading(false);
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Auto-refresh every 60s
+  useEffect(() => {
+    const id = setInterval(async () => {
+      try {
+        clearCache();
+        const result = await fetchAllStocks();
+        setLiveStocks(result.stocks);
+        setIsLiveError(false);
+      } catch {}
+    }, 60_000);
+    return () => clearInterval(id);
   }, []);
 
   // Load recent from localStorage
@@ -38,57 +73,57 @@ export default function StockPowerPage() {
         e.preventDefault();
         setShowCmdPalette(prev => !prev);
       }
-      if (e.key === 'Escape') {
-        setShowCmdPalette(false);
-      }
+      if (e.key === 'Escape') setShowCmdPalette(false);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  // Get all stocks as flat array
-  const allStocks = React.useMemo(() => {
-    if (!stockData) return [];
-    return Object.entries(stockData)
+  // Search from LIVE data (fallback to static)
+  const doSearch = useCallback((q: string): TWSEStock[] => {
+    if (!q.trim()) return [];
+    if (liveStocks.length > 0) return searchStocks(liveStocks, q, 30);
+    // fallback: search static data
+    const lower = q.toLowerCase();
+    return Object.entries(stockData || {})
       .filter(([k]) => !k.startsWith('_'))
       .map(([_, v]) => v as any)
-      .filter(v => v && v.id && v.price);
+      .filter((v: any) => {
+        const id = String(v.id || '').toLowerCase();
+        const name = String(v.name || '').toLowerCase();
+        return id.includes(lower) || name.includes(lower);
+      })
+      .slice(0, 20);
+  }, [liveStocks, stockData]);
+
+  // Merge live stock with static metadata
+  const mergeStock = useCallback((live: TWSEStock | any) => {
+    if (!live || !stockData) return live;
+    const id = live.id || live;
+    const meta = stockData[id];
+    if (!meta) return live;
+    return { ...meta, ...live, price: live.price ?? meta.price };
   }, [stockData]);
 
-  // Search logic
-  const searchStocks = useCallback((q: string) => {
-    if (!q.trim() || !allStocks.length) return [];
-    const lower = q.toLowerCase();
-    return allStocks.filter(s => {
-      const id = String(s.id || '').toLowerCase();
-      const name = String(s.name || '').toLowerCase();
-      return id.includes(lower) || name.includes(lower);
-    }).slice(0, 20);
-  }, [allStocks]);
-
-  // Handle stock selection
+  // Handle selection
   const handleSelectStock = useCallback((stock: any) => {
-    setSelectedStock(stock);
+    const merged = mergeStock(stock);
+    setSelectedStock(merged);
     setMode('results');
-    // Add to recent
     setRecentStocks(prev => {
       const filtered = prev.filter(s => s.id !== stock.id);
-      const next = [stock, ...filtered].slice(0, 10);
+      const next = [merged, ...filtered].slice(0, 10);
       try { localStorage.setItem('sp_recent', JSON.stringify(next)); } catch {}
       return next;
     });
-  }, []);
+  }, [mergeStock]);
 
-  // Handle search submit
   const handleSearch = useCallback((q: string) => {
     setQuery(q);
-    const results = searchStocks(q);
-    if (results.length > 0) {
-      handleSelectStock(results[0]);
-    } else {
-      setMode('results');
-    }
-  }, [searchStocks, handleSelectStock]);
+    const results = doSearch(q);
+    if (results.length > 0) handleSelectStock(results[0]);
+    else setMode('results');
+  }, [doSearch, handleSelectStock]);
 
   const handleBack = useCallback(() => {
     setMode('search');
@@ -96,6 +131,7 @@ export default function StockPowerPage() {
     setSelectedStock(null);
   }, []);
 
+  // Loading state
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#0B0F17' }}>
       <div className="text-center">
@@ -103,18 +139,17 @@ export default function StockPowerPage() {
           style={{ background: 'linear-gradient(135deg, #5B8CFF, #8B5CFF)' }}>
           <span className="text-xs font-black text-white">SP</span>
         </div>
-        <div className="text-xs font-mono" style={{ color: '#5A5D6B' }}>Initializing...</div>
+        <div className="text-xs font-mono" style={{ color: '#5A5D6B' }}>載入中...</div>
       </div>
     </div>
   );
 
   return (
     <div style={{ background: '#0B0F17' }}>
-      {/* Command Palette */}
       <CommandPalette
         isOpen={showCmdPalette}
         onClose={() => setShowCmdPalette(false)}
-        stocks={allStocks}
+        stocks={liveStocks.length > 0 ? liveStocks : []}
         onSelectStock={handleSelectStock}
         activeNav={mode === 'results' ? 'results' : 'search'}
         onNavigate={(page) => {
@@ -122,6 +157,13 @@ export default function StockPowerPage() {
           setShowCmdPalette(false);
         }}
       />
+
+      {isLiveError && (
+        <div className="fixed top-4 right-4 z-50 text-[11px] px-3 py-1.5 rounded-lg"
+          style={{ background: '#131A24', border: '1px solid rgba(255,77,109,0.3)', color: '#FF4D6D' }}>
+          ⚠ 即時資料離線，使用靜態數據
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         {mode === 'search' ? (
@@ -136,8 +178,9 @@ export default function StockPowerPage() {
               onSearch={handleSearch}
               onSelectStock={handleSelectStock}
               recentStocks={recentStocks}
-              allStocks={allStocks}
+              allStocks={liveStocks.length > 0 ? liveStocks : []}
               stockData={stockData}
+              liveCount={liveStocks.length}
             />
           </motion.div>
         ) : (
@@ -150,13 +193,14 @@ export default function StockPowerPage() {
           >
             <StockResults
               query={query}
-              results={searchStocks(query)}
+              results={doSearch(query)}
               selectedStock={selectedStock}
               onSelectStock={handleSelectStock}
               onBack={handleBack}
-              allStocks={allStocks}
+              allStocks={liveStocks.length > 0 ? liveStocks : []}
               recentStocks={recentStocks}
               stockData={stockData}
+              liveStocks={liveStocks}
             />
           </motion.div>
         )}
