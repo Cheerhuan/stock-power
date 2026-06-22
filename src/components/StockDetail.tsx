@@ -280,7 +280,7 @@ export default function StockDetail({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="h-full overflow-y-auto scrollbar-none px-5 py-4 space-y-4"
+      className="h-full overflow-y-auto scrollbar-none px-4 sm:px-5 py-3 sm:py-4 space-y-3 sm:space-y-4"
       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
     >
       {/* ── 1. Stock Identity Bar ────────────────────────── */}
@@ -317,7 +317,7 @@ export default function StockDetail({
             )}
           </div>
         </div>
-        <div className="flex gap-2 mt-3">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-3">
           <span className="text-[11px] bg-[#5B8CFF]/10 text-[#5B8CFF] px-2 py-0.5 rounded font-medium">
             PE {fmt(pe, 1)}
           </span>
@@ -401,7 +401,7 @@ export default function StockDetail({
           <BarChart3 size={16} className="text-[#5B8CFF]" />
           <span className="text-sm font-semibold text-white">關鍵指標</span>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
           {stats.map((s, i) => (
             <motion.div
               key={s.label}
