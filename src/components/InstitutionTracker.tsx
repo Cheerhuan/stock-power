@@ -307,7 +307,7 @@ export default function InstitutionTracker({ stockData }: Props) {
                     net >= 0 ? 'text-emerald-400' : 'text-red-400'
                   }`}
                 >
-                  {net >= 0 ? '+' : ''}{net.toFixed(1)}億
+                  {net >= 0 ? '+' : ''}{(net / 1e8).toFixed(1)}億
                 </p>
               </div>
             )
