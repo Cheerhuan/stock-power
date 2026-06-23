@@ -23,7 +23,7 @@ export default function StockPowerPage() {
     const load = async () => {
       // 1. Load static metadata (fallback)
       try {
-        const r = await fetch('/stock-power/stock-data.json');
+        const r = await fetch('/stock-data.json');
         const d = await r.json();
         if (!cancelled) setStockData(d);
       } catch {}
