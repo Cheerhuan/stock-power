@@ -1,4 +1,4 @@
-name: Daily Data Refresh + Deploy
+name: Daily Data Refresh
 
 on:
   schedule:
@@ -8,8 +8,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   refresh:
@@ -31,7 +29,5 @@ jobs:
           git add public/stock-data.json
           git diff --cached --quiet || git commit -m "chore: auto-update stock data $(date +%Y-%m-%d)"
           git push
-  deploy:
-    needs: refresh
-    uses: ./.github/workflows/deploy.yml
-    secrets: inherit
+      
+      # push 後 Vercel 自動偵測變更並部署，不需額外步驟
