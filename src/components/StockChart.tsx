@@ -1,130 +1,345 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
-import { createChart, ColorType, AreaSeries, LineSeries } from 'lightweight-charts';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import {
+  createChart,
+  CandlestickSeries,
+  LineSeries,
+  ColorType,
+} from 'lightweight-charts';
 
 /* ── Types ── */
-interface StockChartProps {
-  height?: number;
-  days?: number;
-  color?: string;
+interface OHLCV {
+  time: string
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
 }
 
-/* ── Helpers ── */
+interface MAItem {
+  period: number
+  label: string
+  color: string
+  enabled: boolean
+}
 
-/** Generate random walk price data starting from 950 */
-function generateRandomWalk(days: number): { time: string; value: number }[] {
-  const data: { time: string; value: number }[] = [];
-  let price = 950;
-  const now = new Date();
+interface StockChartProps {
+  stockId: string
+  stockName: string
+  height?: number
+}
 
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    // Random walk: daily change between -2% and +2%
-    const change = price * (Math.random() - 0.5) * 0.04;
-    price += change;
-    data.push({
-      time: date.toISOString().split('T')[0],
-      value: Math.round(price * 100) / 100,
-    });
+/* ── MA 計算 ── */
+function calcMA(data: { time: string; close: number }[], period: number) {
+  const result: { time: string; value: number }[] = []
+  for (let i = period - 1; i < data.length; i++) {
+    let sum = 0
+    for (let j = i - period + 1; j <= i; j++) sum += data[j].close
+    result.push({ time: data[i].time, value: Math.round((sum / period) * 100) / 100 })
   }
+  return result
+}
 
-  return data;
+/* ── 時間框架聚合 ── */
+function aggregateWeekly(daily: OHLCV[]): OHLCV[] {
+  const weeks: { [key: string]: OHLCV } = {}
+  for (const d of daily) {
+    const date = new Date(d.time)
+    // 算週一日期
+    const day = date.getDay()
+    const mon = new Date(date)
+    mon.setDate(date.getDate() - ((day + 6) % 7))
+    const wk = mon.toISOString().split('T')[0]
+    if (!weeks[wk]) weeks[wk] = { ...d }
+    else {
+      weeks[wk].high = Math.max(weeks[wk].high, d.high)
+      weeks[wk].low = Math.min(weeks[wk].low, d.low)
+      weeks[wk].close = d.close
+      weeks[wk].volume += d.volume
+    }
+  }
+  return Object.entries(weeks)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, v]) => v)
+}
+
+function aggregateMonthly(daily: OHLCV[]): OHLCV[] {
+  const months: { [key: string]: OHLCV } = {}
+  for (const d of daily) {
+    const key = d.time.slice(0, 7) // '2026-06'
+    if (!months[key]) months[key] = { ...d }
+    else {
+      months[key].high = Math.max(months[key].high, d.high)
+      months[key].low = Math.min(months[key].low, d.low)
+      months[key].close = d.close
+      months[key].volume += d.volume
+    }
+  }
+  return Object.entries(months)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, v]) => v)
 }
 
 /* ── Component ── */
-export default function StockChart({
-  height = 320,
-  days = 120,
-  color = '#5B8CFF',
-}: StockChartProps) {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
+export default function StockChart({ stockId, stockName, height = 360 }: StockChartProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const chartRef = useRef<ReturnType<typeof createChart> | null>(null)
+  const seriesRef = useRef<ReturnType<ReturnType<typeof createChart>['addSeries']> | null>(null)
+  const maSeriesRefs = useRef<{ [key: number]: ReturnType<ReturnType<typeof createChart>['addSeries']> }>({})
 
+  const [rawData, setRawData] = useState<OHLCV[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  // 時間框架
+  const [timeframe, setTimeframe] = useState<'D' | 'W' | 'M'>('D')
+
+  // MA 設定
+  const [mas, setMas] = useState<MAItem[]>([
+    { period: 5, label: 'MA5', color: '#FFD700', enabled: true },
+    { period: 10, label: 'MA10', color: '#FF8C00', enabled: false },
+    { period: 20, label: 'MA20', color: '#A855F7', enabled: false },
+    { period: 60, label: 'MA60', color: '#38BDF8', enabled: false },
+  ])
+
+  const toggleMA = useCallback((period: number) => {
+    setMas(prev => prev.map(m => m.period === period ? { ...m, enabled: !m.enabled } : m))
+  }, [])
+
+  /* ── Fetch data ── */
   useEffect(() => {
-    const container = chartContainerRef.current;
-    if (!container) return;
+    let cancelled = false
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch(`/api/history?stockId=${stockId}&months=12`)
+        const json = await res.json()
+        if (!cancelled && json.data) setRawData(json.data)
+      } catch {}
+      if (!cancelled) setLoading(false)
+    }
+    fetchData()
+    return () => { cancelled = true }
+  }, [stockId])
 
-    /* ── Generate data ── */
-    const data = generateRandomWalk(days);
+  /* ── Render chart ── */
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || rawData.length === 0) return
 
-    /* ── Create chart ── */
+    // 根據時間框架聚合
+    let chartData: OHLCV[]
+    if (timeframe === 'W') chartData = aggregateWeekly(rawData)
+    else if (timeframe === 'M') chartData = aggregateMonthly(rawData)
+    else chartData = rawData
+
+    // 只顯示最近 N 筆（日:365, 週:104, 月:48）
+    const maxCandles = timeframe === 'D' ? 365 : timeframe === 'W' ? 104 : 48
+    chartData = chartData.slice(-maxCandles)
+
+    // ── Create chart ──
     const chart = createChart(container, {
       width: container.clientWidth,
       height,
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: 'transparent',
+        textColor: '#71717a',
+        fontSize: 11,
+        attributionLogo: false,
       },
       grid: {
-        vertLines: { visible: false },
-        horzLines: { visible: false },
+        vertLines: { color: 'rgba(255,255,255,0.03)' },
+        horzLines: { color: 'rgba(255,255,255,0.03)' },
       },
       crosshair: {
-        mode: 0,
-        vertLine: { visible: false, labelVisible: false },
-        horzLine: { visible: false, labelVisible: false },
+        vertLine: {
+          color: '#5B8CFF',
+          style: 2,
+          width: 1,
+          labelBackgroundColor: '#5B8CFF',
+        },
+        horzLine: {
+          color: '#5B8CFF',
+          style: 2,
+          width: 1,
+          labelBackgroundColor: '#5B8CFF',
+        },
       },
       rightPriceScale: {
-        visible: false,
         borderVisible: false,
-      },
-      leftPriceScale: {
-        visible: false,
-        borderVisible: false,
+        scaleMargins: { top: 0.05, bottom: 0.15 },
       },
       timeScale: {
-        visible: false,
         borderVisible: false,
+        timeVisible: true,
+        secondsVisible: false,
       },
       handleScroll: false,
       handleScale: false,
-    });
+    })
+    chartRef.current = chart
 
-    /* ── Add area series with gradient fill ── */
-    const areaSeries = chart.addSeries(AreaSeries, {
-      lineColor: color,
-      topColor: color,
-      bottomColor: 'transparent',
-      lineWidth: 2,
-      crosshairMarkerVisible: false,
+    // ── Candlestick ──
+    const cs = chart.addSeries(CandlestickSeries, {
+      upColor: '#00D26A',
+      downColor: '#FF4D6D',
+      borderUpColor: '#00D26A',
+      borderDownColor: '#FF4D6D',
+      wickUpColor: '#00D26A',
+      wickDownColor: '#FF4D6D',
       priceLineVisible: false,
-      lastValueVisible: false,
-      priceFormat: {
-        type: 'price',
-        precision: 2,
-        minMove: 0.01,
-      },
-    });
+      lastValueVisible: true,
+    })
+    cs.setData(chartData as any)
+    seriesRef.current = cs
 
-    areaSeries.setData(data);
+    // ── MA lines ──
+    const closeData = chartData.map(d => ({ time: d.time, close: d.close }))
+    maSeriesRefs.current = {}
+    for (const ma of mas) {
+      if (!ma.enabled) continue
+      const lineData = calcMA(closeData, ma.period)
+      if (lineData.length === 0) continue
+      const ls = chart.addSeries(LineSeries, {
+        color: ma.color,
+        lineWidth: 2,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      })
+      ls.setData(lineData)
+      maSeriesRefs.current[ma.period] = ls
+    }
 
-    /* ── Responsive resize ── */
+    chart.timeScale().fitContent()
+
+    // ── Resize ──
     const handleResize = () => {
-      if (container) {
-        chart.applyOptions({ width: container.clientWidth });
-      }
-    };
+      chart.applyOptions({ width: container.clientWidth })
+    }
+    window.addEventListener('resize', handleResize)
 
-    window.addEventListener('resize', handleResize);
-
-    /* ── Cleanup ── */
     return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-    };
-  }, [height, days, color]);
+      window.removeEventListener('resize', handleResize)
+      chart.remove()
+      chartRef.current = null
+      seriesRef.current = null
+      maSeriesRefs.current = {}
+    }
+  }, [rawData, timeframe, height])
+
+  // Re-render MA lines when toggled without recreating entire chart
+  useEffect(() => {
+    const chart = chartRef.current
+    const closeData = (seriesRef.current as any)?.data?.()
+    if (!chart || !closeData) return
+
+    // Remove existing MA series
+    Object.values(maSeriesRefs.current).forEach(s => chart.removeSeries(s))
+    maSeriesRefs.current = {}
+
+    // Add enabled MAs
+    for (const ma of mas) {
+      if (!ma.enabled) continue
+      const lineData = calcMA(closeData, ma.period)
+      if (lineData.length === 0) continue
+      const ls = chart.addSeries(LineSeries, {
+        color: ma.color,
+        lineWidth: 2,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      })
+      ls.setData(lineData)
+      maSeriesRefs.current[ma.period] = ls
+    }
+  }, [mas])
+
+  /* ── Timeframe label ── */
+  const tfLabel = timeframe === 'D' ? '日線' : timeframe === 'W' ? '週線' : '月線'
+
+  if (loading) return (
+    <div className="flex items-center justify-center" style={{ height }}>
+      <div className="text-xs font-mono" style={{ color: '#5A5D6B' }}>載入 K 線...</div>
+    </div>
+  )
+
+  if (error || rawData.length === 0) return (
+    <div className="flex items-center justify-center" style={{ height }}>
+      <div className="text-xs font-mono" style={{ color: '#5A5D6B' }}>暫無歷史資料</div>
+    </div>
+  )
+
+  const periods = { D: '日線' as const, W: '週線' as const, M: '月線' as const }
+  const periodsArr = Object.entries(periods) as [string, string][]
 
   return (
-    <div
-      ref={chartContainerRef}
-      style={{
-        width: '100%',
-        height,
-        borderRadius: '16px',
-        overflow: 'hidden',
-        background: '#0B0F17',
-      }}
-    />
-  );
+    <div>
+      {/* ── Toolbar ── */}
+      <div className="flex items-center justify-between px-4 pt-3 pb-2">
+        {/* Timeframe toggle */}
+        <div className="flex items-center gap-1.5">
+          {periodsArr.map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setTimeframe(key as 'D' | 'W' | 'M')}
+              className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all ${
+                timeframe === key
+                  ? 'bg-[#5B8CFF]/20 text-[#5B8CFF]'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* MA toggles */}
+        <div className="flex items-center gap-1.5">
+          {mas.map(ma => (
+            <button
+              key={ma.period}
+              onClick={() => toggleMA(ma.period)}
+              className={`text-[10px] px-2 py-0.5 rounded-md font-mono font-medium transition-all border ${
+                ma.enabled
+                  ? 'border-opacity-40'
+                  : 'border-transparent text-zinc-600'
+              }`}
+              style={{
+                color: ma.enabled ? ma.color : undefined,
+                borderColor: ma.enabled ? ma.color : undefined,
+                backgroundColor: ma.enabled ? `${ma.color}15` : undefined,
+              }}
+            >
+              {ma.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Chart ── */}
+      <div ref={containerRef} className="w-full" />
+
+      {/* ── Info bar ── */}
+      {rawData.length > 0 && (
+        <div className="flex items-center gap-3 px-4 pt-1.5 pb-1">
+          <span className="text-[10px] font-mono" style={{ color: '#5A5D6B' }}>
+            {tfLabel} · {chartDataLength()} 筆
+          </span>
+          <span className="text-[10px] font-mono" style={{ color: '#5A5D6B' }}>
+            {rawData[0]?.time} ~ {rawData[rawData.length - 1]?.time}
+          </span>
+        </div>
+      )}
+    </div>
+  )
+
+  // Helper for displaying count - not a hook, safe inside render
+  function chartDataLength(): number {
+    const d = timeframe === 'W' ? aggregateWeekly(rawData) :
+             timeframe === 'M' ? aggregateMonthly(rawData) : rawData
+    return d.length
+  }
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
+import StockChart from './StockChart';
 import {
   TrendingUp,
   TrendingDown,
@@ -33,57 +33,6 @@ function trendIcon(v: number | null | undefined) {
   if (v > 0) return <TrendingUp size={14} className="text-[#00D26A]" />;
   return <TrendingDown size={14} className="text-[#FF4D6D]" />;
 }
-
-/* ─── random demo data ────────────────────────────────────── */
-function randomDataPoints(n = 120) {
-  let v = 150 + Math.random() * 50;
-  const points: { time: string; value: number }[] = [];
-  const now = new Date();
-  for (let i = n; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    v += (Math.random() - 0.48) * 4;
-    v = Math.max(v, 80);
-    points.push({ time: Math.floor(d.getTime() / 1000) as any, value: Math.round(v * 100) / 100 });
-  }
-  return points;
-}
-
-const DEMO_PRICES = randomDataPoints(120);
-const LATEST_PRICE = DEMO_PRICES[DEMO_PRICES.length - 1]?.value ?? 0;
-const PREV_CLOSE = DEMO_PRICES[DEMO_PRICES.length - 2]?.value ?? LATEST_PRICE;
-const DEMO_CHANGE = ((LATEST_PRICE - PREV_CLOSE) / PREV_CLOSE) * 100;
-
-const DEMO_PE = 22.4;
-const DEMO_EPS = 8.15;
-const DEMO_YIELD = 2.8;
-const DEMO_REV_GROWTH = 15.3;
-const DEMO_FOREIGN = 42.7;
-const DEMO_MARGIN = 31.2;
-
-const DEMO_SCORE = 78; // 0-100
-const DEMO_RISK = 32; // 0-100
-
-const INSTITUTIONS = [
-  { label: '外資', netBuy: 1245, color: '#00D26A' },
-  { label: '投信', netBuy: 312, color: '#00D26A' },
-  { label: '自營商', netBuy: -187, color: '#FF4D6D' },
-];
-
-const NEWS_ITEMS = [
-  { title: '台積電法說會展望優於預期，外資調高目標價', source: '經濟日報', sentiment: 'positive', summary: '台積電昨日法說會公布第三季財報優於預期，多家外資券商調高目標價至800元以上。' },
-  { title: 'AI 需求持續強勁，供應鏈拉貨動能增溫', source: '工商時報', sentiment: 'positive', summary: '受惠於AI伺服器需求暢旺，相關供應鏈業績持續增溫，預期下半年營運表現可期。' },
-  { title: '市場觀望聯準會利率決策，台股量縮整理', source: '鉅亨網', sentiment: 'neutral', summary: '聯準會即將公布最新利率決策，市場觀望氣氛濃厚，台股今日量縮震盪整理。' },
-];
-
-const INVESTORS = [
-  { name: '巴菲特', key: 'buffett', color: '#5B8CFF', match: true },
-  { name: '林區', key: 'lynch', color: '#00D26A', match: false },
-  { name: '芒格', key: 'munger', color: '#FFD700', match: true },
-  { name: '達利歐', key: 'dalio', color: '#FF6B6B', match: false },
-  { name: '西蒙斯', key: 'simons', color: '#A855F7', match: true },
-  { name: '葛拉漢', key: 'graham', color: '#38BDF8', match: false },
-];
 
 /* ─── mini circular gauge ─────────────────────────────────── */
 function CircularGauge({
@@ -165,82 +114,13 @@ export default function StockDetail({
   stock: any;
   stockData: any;
 }) {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
   const [expandedNews, setExpandedNews] = useState<number | null>(null);
-
-  /* ─── chart ────────────────────────────────────────────── */
-  useEffect(() => {
-    if (!chartContainerRef.current) return;
-
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#71717a',
-        fontSize: 11,
-        attributionLogo: false,
-      },
-      grid: {
-        vertLines: { color: 'rgba(255,255,255,0.03)' },
-        horzLines: { color: 'rgba(255,255,255,0.03)' },
-      },
-      width: chartContainerRef.current.clientWidth,
-      height: 320,
-      timeScale: {
-        borderVisible: false,
-        timeVisible: true,
-        tickMarkFormatter: (t: number) => {
-          const d = new Date(t * 1000);
-          return `${d.getMonth() + 1}/${d.getDate()}`;
-        },
-      },
-      rightPriceScale: {
-        borderVisible: false,
-        scaleMargins: { top: 0.05, bottom: 0.1 },
-      },
-      crosshair: {
-        vertLine: { color: '#5B8CFF', style: 2, width: 1, labelBackgroundColor: '#5B8CFF' },
-        horzLine: { color: '#5B8CFF', style: 2, width: 1, labelBackgroundColor: '#5B8CFF' },
-      },
-      handleScroll: false,
-      handleScale: false,
-    });
-
-    // Convert demo data to chart format
-    const data = DEMO_PRICES.map((p) => ({ time: p.time as any, value: p.value }));
-
-    const areaSeries = chart.addSeries(AreaSeries, {
-      lineColor: '#5B8CFF',
-      topColor: 'rgba(91, 140, 255, 0.35)',
-      bottomColor: 'rgba(91, 140, 255, 0.01)',
-      lineWidth: 2,
-      crosshairMarkerVisible: true,
-      crosshairMarkerRadius: 4,
-      crosshairMarkerBorderColor: '#5B8CFF',
-      crosshairMarkerBackgroundColor: '#131A24',
-      priceLineVisible: false,
-      lastValueVisible: true,
-    });
-    areaSeries.setData(data);
-
-    chart.timeScale().fitContent();
-
-    const resize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-      }
-    };
-    window.addEventListener('resize', resize);
-    return () => {
-      window.removeEventListener('resize', resize);
-      chart.remove();
-    };
-  }, []);
 
   /* ─── derive display values ───────────────────────────── */
   const name = stock?.name ?? '台積電';
   const ticker = stock?.ticker ?? '2330.TW';
-  const price = stock?.price ?? LATEST_PRICE;
-  const change = stock?.changePct ?? DEMO_CHANGE;
+  const price = stock?.price ?? 0;
+  const change = stock?.changePct ?? 0;
   const isUp = change >= 0;
 
   const pe = stock?.pe ?? null;
@@ -330,23 +210,14 @@ export default function StockDetail({
         </div>
       </motion.div>
 
-      {/* ── 2. Chart ─────────────────────────────────────── */}
+      {/* ── 2. K 線圖 ── */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="bg-[#131A24] rounded-xl border border-[rgba(255,255,255,0.08)] overflow-hidden"
       >
-        <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-          <span className="text-xs text-zinc-400 font-medium">走勢圖</span>
-          <div className="flex items-center gap-2 text-[10px] text-zinc-500">
-            <span className="px-2 py-0.5 rounded bg-zinc-800">1M</span>
-            <span className="px-2 py-0.5 rounded bg-[#5B8CFF]/20 text-[#5B8CFF]">3M</span>
-            <span className="px-2 py-0.5 rounded bg-zinc-800">6M</span>
-            <span className="px-2 py-0.5 rounded bg-zinc-800">1Y</span>
-          </div>
-        </div>
-        <div ref={chartContainerRef} className="w-full -ml-0.5" />
+        <StockChart stockId={stock?.id ?? '2330'} stockName={name} height={360} />
       </motion.div>
 
       {/* ── 3. AI Score ──────────────────────────────────── */}
@@ -440,13 +311,13 @@ export default function StockDetail({
                 { label: '投信', netBuy: stock.inst_net.investment_trust ?? 0, color: '#00D26A' },
                 { label: '自營商', netBuy: stock.inst_net.dealer ?? 0, color: '#FF4D6D' },
               ]
-            : INSTITUTIONS
+            : [{ label: '外資', netBuy: 0, color: '#00D26A' }, { label: '投信', netBuy: 0, color: '#00D26A' }, { label: '自營商', netBuy: 0, color: '#FF4D6D' }]
           ).map((inst) => {
             const absVal = Math.abs(inst.netBuy);
             const maxVal = Math.max(...(
               stock?.inst_net
                 ? [Math.abs(stock.inst_net.foreign ?? 0), Math.abs(stock.inst_net.investment_trust ?? 0), Math.abs(stock.inst_net.dealer ?? 0)]
-                : INSTITUTIONS.map((i) => Math.abs(i.netBuy))
+                : [1]
             ), 1);
             const barWidth = (absVal / maxVal) * 100;
             const isPositive = inst.netBuy >= 0;
@@ -496,7 +367,7 @@ export default function StockDetail({
           <span className="text-sm font-semibold text-white">新聞動態</span>
         </div>
         <div className="space-y-2">
-          {(stockData?._news ?? NEWS_ITEMS).map((news: any, i: number) => {
+          {(stockData?._news ?? []).map((news: any, i: number) => {
             const isExpanded = expandedNews === i;
             return (
               <motion.div
@@ -564,7 +435,7 @@ export default function StockDetail({
           <span className="text-sm font-semibold text-white">AI 共識 — 誰會買這檔？</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {(stock?.consensus ?? INVESTORS).map((inv: any, idx: number) => (
+          {(stock?.consensus ?? []).map((inv: any, idx: number) => (
             <motion.div
               key={inv.key ?? idx}
               initial={{ opacity: 0, scale: 0.8 }}
