@@ -176,8 +176,17 @@ export default function StockChart({ stockId, stockName, height = 360 }: StockCh
         timeVisible: true,
         secondsVisible: false,
       },
-      handleScroll: false,
-      handleScale: false,
+      handleScroll: {
+        horzTouchDrag: true,
+        vertTouchDrag: false,
+        mouseWheel: true,
+        pressedMouseMove: true,
+      },
+      handleScale: {
+        axisPressedMouseMove: { time: true, price: false },
+        mouseWheel: true,
+        pinch: true,
+      },
     })
     chartRef.current = chart
 
@@ -317,6 +326,18 @@ export default function StockChart({ stockId, stockName, height = 360 }: StockCh
             </button>
           ))}
         </div>
+
+        {/* Reset zoom */}
+        <button
+          onClick={() => {
+            const chart = chartRef.current
+            if (chart) chart.timeScale().fitContent()
+          }}
+          className="text-[10px] px-2.5 py-1 rounded-full font-medium transition-all duration-200 text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-transparent hover:border-[var(--card-border)]"
+          title="還原縮放"
+        >
+          ↩
+        </button>
       </div>
 
       {/* ── Chart ── */}
