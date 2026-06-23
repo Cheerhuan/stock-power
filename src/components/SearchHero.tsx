@@ -272,7 +272,8 @@ export default function SearchHero({
                     <div className="space-y-0.5 px-1.5">
                       {items.map((stock: any, idx: number) => {
                         const isActive = idx === activeIndex;
-                        const isPositive = (stock.change ?? 0) >= 0;
+                        const pct = stock.changePct ?? stock.change_pct ?? stock.change;
+                        const isPositive = (pct ?? 0) >= 0;
                         return (
                           <button
                             key={`result-${stock.id}`}
@@ -322,15 +323,15 @@ export default function SearchHero({
                               {stock.change !== undefined && (
                                 <div
                                   className={`text-[11px] font-mono font-bold mt-0.5 ${
-                                    stock.change > 0
+                                    (pct ?? 0) > 0
                                       ? 'text-emerald-400'
-                                      : stock.change < 0
+                                      : (pct ?? 0) < 0
                                       ? 'text-rose-400'
                                       : 'text-zinc-500'
                                   }`}
                                 >
-                                  {stock.change > 0 ? '+' : ''}
-                                  {stock.change.toFixed(2)}%
+                                  {(pct ?? 0) > 0 ? '+' : ''}
+                                  {(pct ?? 0).toFixed(2)}%
                                 </div>
                               )}
                             </div>
@@ -397,7 +398,8 @@ export default function SearchHero({
                   </div>
                   <div className="flex flex-wrap gap-2.5">
                     {hotStocks.map((stock: any) => {
-                      const isPositive = (stock.change ?? 0) >= 0;
+                      const pct = stock.changePct ?? stock.change_pct ?? stock.change;
+                      const isPositive = (pct ?? 0) >= 0;
                       return (
                         <motion.button
                           key={`hot-${stock.id}`}
@@ -420,7 +422,7 @@ export default function SearchHero({
                             }`}
                           >
                             {isPositive ? '+' : ''}
-                            {stock.change?.toFixed(1) ?? '0.0'}%
+                            {(pct ?? 0).toFixed(1)}%
                           </span>
                         </motion.button>
                       );
@@ -440,7 +442,8 @@ export default function SearchHero({
                   </div>
                   <div className="flex flex-wrap gap-2.5">
                     {recentStocks.slice(0, 6).map((stock: any) => {
-                      const isPositive = (stock.change ?? 0) >= 0;
+                      const pct = stock.changePct ?? stock.change_pct ?? stock.change;
+                      const isPositive = (pct ?? 0) >= 0;
                       return (
                         <motion.button
                           key={`recent-${stock.id}`}
@@ -460,7 +463,7 @@ export default function SearchHero({
                             }`}
                           >
                             {isPositive ? '+' : ''}
-                            {stock.change?.toFixed(1) ?? '0.0'}%
+                            {(pct ?? 0).toFixed(1)}%
                           </span>
                         </motion.button>
                       );

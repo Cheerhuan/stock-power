@@ -50,9 +50,10 @@ function StockRow({
   query?: string;
   onClick: () => void;
 }) {
+  const pct = stock.changePct ?? stock.change_pct ?? stock.change;
   const change = stock.change ?? stock.change_pct ?? 0;
   const price = stock.price ?? stock.close ?? 0;
-  const isPositive = change >= 0;
+  const isPositive = (pct ?? 0) >= 0;
 
   return (
     <button
@@ -117,7 +118,7 @@ function StockRow({
             }`}
           >
             {change > 0 ? '+' : ''}
-            {Number(change).toFixed(2)}%
+            {(pct ?? change).toFixed(2)}%
           </div>
         )}
       </div>
@@ -347,8 +348,9 @@ export default function StockList({
                   </div>
                   <div className="grid grid-cols-2 gap-1.5 px-1">
                     {hotStocks.map((stock: any) => {
+                      const pct = stock.changePct ?? stock.change_pct ?? stock.change;
                       const change = stock.change ?? stock.change_pct ?? 0;
-                      const isPos = change >= 0;
+                      const isPos = (pct ?? 0) >= 0;
                       return (
                         <motion.button
                           key={`hot-${stock.id}`}
@@ -371,7 +373,7 @@ export default function StockList({
                             }`}
                           >
                             {isPos ? '+' : ''}
-                            {Number(change).toFixed(1)}%
+                            {(pct ?? 0).toFixed(1)}%
                           </span>
                         </motion.button>
                       );
