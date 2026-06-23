@@ -134,6 +134,18 @@ export default function StockDetail({
   const risk = stock?.risk_score ?? null;
   const advice = stock?.advice ?? null;
 
+  // consensus: 支援物件 {key: bool} 和陣列 [{name, key, color, match}]
+  const consensusList = stock?.consensus
+    ? (Array.isArray(stock.consensus)
+        ? stock.consensus
+        : Object.entries(stock.consensus).map(([key, match]) => ({
+            key,
+            name: ({ buffett: '巴菲特', lynch: '林區', munger: '芒格', graham: '葛拉漢', dalio: '達利歐', simons: '西蒙斯', soros: '索羅斯' } as any)[key] ?? key,
+            color: ({ buffett: '#5B8CFF', lynch: '#00D26A', munger: '#FFD700', graham: '#38BDF8', dalio: '#FF6B6B', simons: '#A855F7', soros: '#FF8C00' } as any)[key] ?? '#5B8CFF',
+            match: !!match,
+          })))
+    : []
+
   const stats = [
     { label: '本益比', value: pe != null ? fmt(pe, 1) : '—', trend: pe != null ? (pe < 20 ? 1 : pe > 30 ? -1 : 0) : 0 },
     { label: 'EPS', value: eps != null ? `$${fmt(eps)}` : '—', trend: eps != null ? (eps > 5 ? 1 : -1) : 0 },
@@ -435,7 +447,9 @@ export default function StockDetail({
           <span className="text-sm font-semibold text-white">AI 共識 — 誰會買這檔？</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {(stock?.consensus ?? []).map((inv: any, idx: number) => (
+          {consensusList.length === 0 ? (
+            <span className="text-xs text-zinc-600">暫無 AI 共識資料</span>
+          ) : consensusList.map((inv: any, idx: number) => (
             <motion.div
               key={inv.key ?? idx}
               initial={{ opacity: 0, scale: 0.8 }}
