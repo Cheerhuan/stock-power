@@ -221,7 +221,7 @@ export default function StockList({
               : 'border-white/[0.06]'
             }
           `}
-          style={{ background: 'rgba(255,255,255,0.04)' }}
+          style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(16px)' }}
         >
           <Search
             size={14}

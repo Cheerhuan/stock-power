@@ -212,13 +212,13 @@ export default function StockDetail({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="bg-[#131A24] rounded-xl p-4 border border-[rgba(255,255,255,0.08)]"
+        className="bg-[#0E1119] rounded-xl p-4 border border-[var(--card-border)]"
       >
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-white">{name}</h2>
-              <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded font-mono">
+              <span className="text-xs text-zinc-500 bg-zinc-800/60 px-2 py-0.5 rounded font-mono">
                 {ticker}
               </span>
             </div>
@@ -269,10 +269,10 @@ export default function StockDetail({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="bg-[#131A24] rounded-xl p-4 border border-[rgba(255,255,255,0.08)]"
+        className="bg-[#0E1119] rounded-xl p-4 border border-[var(--card-border)]"
       >
         <div className="flex items-center gap-2 mb-3">
-          <Brain size={16} className="text-[#5B8CFF]" />
+          <Brain size={16} className="text-[var(--aurora-indigo)]" />
           <span className="text-sm font-semibold text-white">AI 評分</span>
         </div>
         <div className="flex items-center justify-around">
@@ -310,10 +310,10 @@ export default function StockDetail({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-[#131A24] rounded-xl p-4 border border-[rgba(255,255,255,0.08)]"
+        className="bg-[#0E1119] rounded-xl p-4 border border-[var(--card-border)]"
       >
         <div className="flex items-center gap-2 mb-3">
-          <BarChart3 size={16} className="text-[#5B8CFF]" />
+          <BarChart3 size={16} className="text-[var(--aurora-indigo)]" />
           <span className="text-sm font-semibold text-white">關鍵指標</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
@@ -323,7 +323,7 @@ export default function StockDetail({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + i * 0.05 }}
-              className="bg-black/30 rounded-lg p-2.5 border border-[rgba(255,255,255,0.04)]"
+              className="bg-black/20 rounded-lg p-2.5 border border-[rgba(255,255,255,0.03)]"
             >
               <div className="text-[10px] text-zinc-500 mb-0.5">{s.label}</div>
               <div className="flex items-center justify-between">
@@ -342,10 +342,10 @@ export default function StockDetail({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="bg-[#131A24] rounded-xl p-4 border border-[rgba(255,255,255,0.08)]"
+        className="bg-[#0E1119] rounded-xl p-4 border border-[var(--card-border)]"
       >
         <div className="flex items-center gap-2 mb-3">
-          <Building2 size={16} className="text-[#5B8CFF]" />
+          <Building2 size={16} className="text-[var(--aurora-indigo)]" />
           <span className="text-sm font-semibold text-white">三大法人</span>
         </div>
         <div className="space-y-2.5">
@@ -408,10 +408,10 @@ export default function StockDetail({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-[#131A24] rounded-xl p-4 border border-[rgba(255,255,255,0.08)]"
+        className="bg-[#0E1119] rounded-xl p-4 border border-[var(--card-border)]"
       >
         <div className="flex items-center gap-2 mb-3">
-          <Newspaper size={16} className="text-[#5B8CFF]" />
+          <Newspaper size={16} className="text-[var(--aurora-indigo)]" />
           <span className="text-sm font-semibold text-white">新聞動態</span>
         </div>
         <div className="space-y-2">
@@ -476,10 +476,10 @@ export default function StockDetail({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
-        className="bg-[#131A24] rounded-xl p-4 border border-[rgba(255,255,255,0.08)]"
+        className="bg-[#0E1119] rounded-xl p-4 border border-[var(--card-border)]"
       >
         <div className="flex items-center gap-2 mb-3">
-          <Users size={16} className="text-[#5B8CFF]" />
+          <Users size={16} className="text-[var(--aurora-indigo)]" />
           <span className="text-sm font-semibold text-white">AI 共識 — 誰會買這檔？</span>
         </div>
         <div className="flex flex-wrap gap-2">

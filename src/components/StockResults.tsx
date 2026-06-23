@@ -41,7 +41,7 @@ function DesktopResults({
   allStocks, recentStocks, stockData,
 }: StockResultsProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', height: '100vh', overflow: 'hidden', background: '#0B0F17' }}>
+    <div style={{ display: 'flex', flexDirection: 'row', height: '100vh', overflow: 'hidden', background: 'transparent' }}>
       {/* LEFT sidebar */}
       <div style={{ width: 320, minWidth: 320, display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', minHeight: 52 }}>
@@ -83,7 +83,7 @@ function MobileResults({
 }: StockResultsProps) {
   if (selectedStock) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden', background: '#0B0F17' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden', background: 'transparent' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', minHeight: 52, flexShrink: 0 }}>
           <button onClick={onBack} aria-label="Back to list"
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.06)', color: '#B0B3C6', cursor: 'pointer', flexShrink: 0 }}>
@@ -103,7 +103,7 @@ function MobileResults({
 
   /* ⟵ no detail → show list full screen */
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden', background: '#0B0F17' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden', background: 'transparent' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', minHeight: 52, flexShrink: 0 }}>
         <button onClick={onBack} aria-label="Back to search"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.06)', color: '#B0B3C6', cursor: 'pointer', flexShrink: 0 }}>

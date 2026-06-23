@@ -327,8 +327,12 @@ export default function CommandPalette({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -12 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="w-full max-w-xl rounded-2xl shadow-2xl shadow-black/50 overflow-hidden border border-white/[0.06]"
-            style={{ backgroundColor: '#131A24' }}
+            className="w-full max-w-xl rounded-2xl shadow-2xl shadow-black/50 overflow-hidden border border-[var(--card-border)]"
+            style={{
+              background: 'rgba(14,17,25,0.95)',
+              backdropFilter: 'blur(32px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── Search Input ── */}

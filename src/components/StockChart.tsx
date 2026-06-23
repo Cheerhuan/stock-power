@@ -262,7 +262,7 @@ export default function StockChart({ stockId, stockName, height = 360 }: StockCh
 
   if (loading) return (
     <div className="flex items-center justify-center" style={{ height }}>
-      <div className="text-xs font-mono" style={{ color: '#5A5D6B' }}>載入 K 線...</div>
+      <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>載入 K 線...</div>
     </div>
   )
 
@@ -285,10 +285,10 @@ export default function StockChart({ stockId, stockName, height = 360 }: StockCh
             <button
               key={key}
               onClick={() => setTimeframe(key as 'D' | 'W' | 'M')}
-              className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-all ${
+              className={`text-[11px] px-3 py-1.5 rounded-full font-medium transition-all duration-200 ${
                 timeframe === key
-                  ? 'bg-[#5B8CFF]/20 text-[#5B8CFF]'
-                  : 'text-zinc-500 hover:text-zinc-300'
+                  ? 'bg-[var(--primary-dim)] text-[var(--primary)] shadow-[0_0_12px_var(--primary-glow)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
               {label}
@@ -302,15 +302,15 @@ export default function StockChart({ stockId, stockName, height = 360 }: StockCh
             <button
               key={ma.period}
               onClick={() => toggleMA(ma.period)}
-              className={`text-[10px] px-2 py-0.5 rounded-md font-mono font-medium transition-all border ${
+              className={`text-[10px] px-2.5 py-1 rounded-full font-mono font-medium transition-all duration-200 border ${
                 ma.enabled
-                  ? 'border-opacity-40'
-                  : 'border-transparent text-zinc-600'
+                  ? 'border-opacity-50 shadow-[0_0_8px]'
+                  : 'border-transparent text-[var(--text-dim)]'
               }`}
               style={{
                 color: ma.enabled ? ma.color : undefined,
                 borderColor: ma.enabled ? ma.color : undefined,
-                backgroundColor: ma.enabled ? `${ma.color}15` : undefined,
+                backgroundColor: ma.enabled ? `${ma.color}12` : 'transparent',
               }}
             >
               {ma.label}
@@ -325,7 +325,7 @@ export default function StockChart({ stockId, stockName, height = 360 }: StockCh
       {/* ── Info bar ── */}
       {rawData.length > 0 && (
         <div className="flex items-center gap-3 px-4 pt-1.5 pb-1">
-          <span className="text-[10px] font-mono" style={{ color: '#5A5D6B' }}>
+          <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
             {tfLabel} · {chartDataLength()} 筆
           </span>
           <span className="text-[10px] font-mono" style={{ color: '#5A5D6B' }}>

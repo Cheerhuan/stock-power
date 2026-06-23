@@ -2,45 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════════════
+   Aurora Terminal — 2026 輕量色彩系統
+   ═══════════════════════════════════════════════════════════ */
+
 :root {
-  --bg: #0B0F17;
-  --bg-2: #0E121B;
-  --card: #131A24;
-  --card-hover: #181F2B;
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-border-hover: rgba(91, 140, 255, 0.2);
-  --primary: #5B8CFF;
-  --primary-dim: rgba(91, 140, 255, 0.12);
-  --primary-glow: rgba(91, 140, 255, 0.06);
-  --up: #00D26A;
-  --up-dim: rgba(0, 210, 106, 0.12);
-  --down: #FF4D6D;
-  --down-dim: rgba(255, 77, 109, 0.12);
-  --warn: #FFB347;
-  --text: #E4E6EB;
-  --text-secondary: #8B8E9B;
-  --text-muted: #5A5D6B;
-  --muted: #383B45;
-  --radius: 24px;
-  --radius-sm: 16px;
-  --radius-xs: 12px;
+  /* ── Background ── */
+  --bg-deep: #06080C;
+  --bg-base: #0A0D14;
+  --bg-raised: #0E1119;
+
+  /* ── Card / Glass ── */
+  --card-bg: rgba(255, 255, 255, 0.025);
+  --card-border: rgba(255, 255, 255, 0.06);
+  --card-border-hover: rgba(255, 255, 255, 0.10);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.2);
+
+  /* ── Aurora Accents ── */
+  --aurora-indigo: #818CF8;
+  --aurora-cyan: #22D3EE;
+  --aurora-emerald: #34D399;
+  --aurora-violet: #A78BFA;
+  --aurora-rose: #FB7185;
+
+  /* ── Primary ── */
+  --primary: #818CF8;
+  --primary-dim: rgba(129, 140, 248, 0.12);
+  --primary-glow: rgba(129, 140, 248, 0.08);
+
+  /* ── Semantic ── */
+  --up: #34D399;
+  --up-dim: rgba(52, 211, 153, 0.12);
+  --down: #FB7185;
+  --down-dim: rgba(251, 113, 133, 0.12);
+  --warn: #FBBF24;
+  --warn-dim: rgba(251, 191, 36, 0.12);
+
+  /* ── Text ── */
+  --text: #E8EAED;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --text-dim: #4B5563;
+
+  /* ── Border / Divider ── */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-glow: rgba(129, 140, 248, 0.18);
+  --divider: rgba(255, 255, 255, 0.04);
+
+  /* ── Radius ── */
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+
+  /* ── Spacing ── */
   --gutter: 24px;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Base
+   ═══════════════════════════════════════════════════════════ */
 
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background: var(--bg);
+  background: var(--bg-deep);
   color: var(--text);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  position: relative;
 }
 
-/* ── Container ── */
+/* ── Static Aurora Background (pure CSS, zero performance cost) ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(129, 140, 248, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(34, 211, 238, 0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 50% 80%, rgba(167, 139, 250, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 70%, rgba(52, 211, 153, 0.03) 0%, transparent 50%);
+  opacity: 0.85;
+}
+
+/* ── Subtle Noise Texture (SVG filter, no image load) ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Container
+   ═══════════════════════════════════════════════════════════ */
+
 .section-container {
   max-width: 1440px;
   margin-left: auto;
@@ -50,74 +117,151 @@ body {
   width: 100%;
 }
 
-/* ── Glass Card ── */
+/* ═══════════════════════════════════════════════════════════
+   Glass Cards — evolved 2026 glass morphism
+   ═══════════════════════════════════════════════════════════ */
+
 .glass {
-  background: var(--card);
+  background: var(--card-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--card-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--card-shadow);
+  position: relative;
+  z-index: 2;
 }
 
 .glass-sm {
-  background: var(--card);
+  background: var(--card-bg);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
   border: 1px solid var(--card-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  position: relative;
+  z-index: 2;
 }
 
-.glass-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+/* Iridescent border on hover */
+.glass-iridescent {
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
 }
-.glass-hover:hover {
-  background: var(--card-hover);
-  border-color: var(--card-border-hover);
+.glass-iridescent:hover {
+  border-color: var(--border-glow);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 4px 24px rgba(129, 140, 248, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Shimmer sweep on hover (pure CSS) */
+.glass-shimmer {
+  overflow: hidden;
+  position: relative;
+}
+.glass-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.03) 45%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 55%,
+    transparent 60%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-shimmer:hover::after {
+  transform: translateX(100%);
 }
 
 /* ── Focus Ring ── */
 .focus-ring:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary);
+  box-shadow: 0 0 0 2px var(--bg-deep), 0 0 0 4px var(--primary);
   border-color: transparent;
+}
+
+/* ── Aurora Glow (for active/focus states) ── */
+.glow {
+  box-shadow: 0 0 20px var(--primary-glow), 0 0 40px rgba(129, 140, 248, 0.04);
+}
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.12), 0 0 40px rgba(34, 211, 238, 0.04);
+}
+.glow-emerald {
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.12), 0 0 40px rgba(52, 211, 153, 0.04);
+}
+
+/* ── Pill Button ── */
+.pill {
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.pill-active {
+  background: var(--primary-dim);
+  color: var(--primary);
+  box-shadow: 0 0 12px var(--primary-glow);
 }
 
 /* ── Gradient Text ── */
 .gradient-text {
-  background: linear-gradient(135deg, #5B8CFF, #8B5CFF);
+  background: linear-gradient(135deg, var(--aurora-indigo), var(--aurora-cyan));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* ── Selection ── */
+/* ═══════════════════════════════════════════════════════════
+   Selection
+   ═══════════════════════════════════════════════════════════ */
+
 ::selection {
-  background: rgba(91, 140, 255, 0.2);
+  background: rgba(129, 140, 248, 0.25);
   color: #fff;
 }
 
-/* ── Scrollbar ── */
+/* ═══════════════════════════════════════════════════════════
+   Scrollbar
+   ═══════════════════════════════════════════════════════════ */
+
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.04); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.08); }
 
-/* ── Animations ── */
+/* ═══════════════════════════════════════════════════════════
+   Animations (existing — colors updated)
+   ═══════════════════════════════════════════════════════════ */
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 .animate-fade-in {
-  animation: fadeIn 0.3s ease both;
+  animation: fadeIn 0.25s ease both;
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-slide-up {
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50% { opacity: 0.35; }
 }
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
@@ -129,26 +273,26 @@ body {
   100% { background-position: 200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, var(--card) 25%, var(--card-hover) 50%, var(--card) 75%);
+  background: linear-gradient(90deg, var(--card-bg) 25%, rgba(255,255,255,0.04) 50%, var(--card-bg) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-md);
 }
 
 /* ── Number Ticker ── */
 @keyframes tickerPop {
   0% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+  50% { transform: scale(1.06); }
   100% { transform: scale(1); }
 }
 .ticker-pop {
-  animation: tickerPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: tickerPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Price change blink ── */
+/* ── Price Change Flash ── */
 @keyframes priceFlash {
   0% { background-color: transparent; }
-  30% { background-color: rgba(91,140,255,0.08); }
+  30% { background-color: var(--primary-dim); }
   100% { background-color: transparent; }
 }
 .price-flash {

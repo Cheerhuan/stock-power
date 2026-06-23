@@ -136,30 +136,9 @@ export default function SearchHero({
   return (
     <section
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{ background: '#0B0F17' }}
+      style={{ background: 'transparent' }}
     >
-      {/* ── Background gradient orbs ── */}
-      <div
-        className="absolute top-[-15%] left-[-10%] w-[60%] h-[60%] pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at 30% 40%, rgba(91, 140, 255, 0.08) 0%, transparent 70%)',
-        }}
-      />
-      <div
-        className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at 70% 60%, rgba(91, 140, 255, 0.05) 0%, transparent 70%)',
-        }}
-      />
-      <div
-        className="absolute top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[70%] h-[40%] pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse, rgba(91, 140, 255, 0.03) 0%, transparent 60%)',
-        }}
-      />
+      {/* Aurora background handled globally via globals.css */}
 
       {/* ── Content ── */}
       <div className="relative z-10 w-full max-w-2xl mx-auto px-6 py-12">
@@ -173,7 +152,7 @@ export default function SearchHero({
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-[1.15] tracking-tight">
             今天想研究哪支股票？
           </h1>
-          <p className="text-base sm:text-lg mt-3" style={{ color: '#5A5D6B' }}>
+          <p className="text-base sm:text-lg mt-3" style={{ color: 'var(--text-secondary)' }}>
             搜尋股票代號、公司名稱、ETF
           </p>
           {liveCount != null && liveCount > 0 && (
@@ -193,21 +172,26 @@ export default function SearchHero({
           <div
             className={`
               relative flex items-center gap-3
-              rounded-[24px] px-6 py-4
+              rounded-2xl px-6 py-4
               transition-all duration-300
               border
+              glass-iridescent
               ${isFocused || query
-                ? 'border-[#5B8CFF] shadow-[0_0_24px_rgba(91,140,255,0.15)]'
-                : 'border-[rgba(255,255,255,0.08)]'
+                ? 'border-[var(--border-glow)] glow'
+                : 'border-[var(--card-border)]'
               }
             `}
-            style={{ background: '#131A24' }}
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            }}
           >
             {/* Search icon */}
             <Search
               size={20}
               className={`shrink-0 transition-colors duration-300 ${
-                isFocused || query ? 'text-[#5B8CFF]' : 'text-zinc-500'
+                isFocused || query ? 'text-[var(--aurora-indigo)]' : 'text-[var(--text-muted)]'
               }`}
             />
 
@@ -250,8 +234,13 @@ export default function SearchHero({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.98 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="absolute left-0 right-0 top-full mt-2 rounded-2xl overflow-hidden border border-[rgba(255,255,255,0.06)] shadow-2xl shadow-black/40 z-20"
-                style={{ background: '#131A24' }}
+                className="absolute left-0 right-0 top-full mt-2 rounded-2xl overflow-hidden border shadow-2xl shadow-black/40 z-20"
+                style={{
+                  background: 'rgba(14,17,25,0.92)',
+                  backdropFilter: 'blur(24px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                  borderColor: 'rgba(255,255,255,0.08)',
+                }}
               >
                 {/* Results list */}
                 <div
@@ -284,8 +273,8 @@ export default function SearchHero({
                             className={`
                               w-full flex items-center gap-3 px-4 py-3 text-left transition-all rounded-xl
                               ${isActive
-                                ? 'bg-white/[0.08]'
-                                : 'hover:bg-white/[0.04]'
+                                ? 'bg-white/[0.06]'
+                                : 'hover:bg-white/[0.03]'
                               }
                             `}
                           >
@@ -338,7 +327,7 @@ export default function SearchHero({
 
                             {/* Active indicator */}
                             {isActive && (
-                              <div className="w-1 h-8 rounded-full bg-[#5B8CFF] shrink-0" />
+                              <div className="w-1 h-8 rounded-full bg-[var(--aurora-indigo)] shrink-0" />
                             )}
                           </button>
                         );
@@ -391,8 +380,8 @@ export default function SearchHero({
               {hotStocks.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#FFC857]" />
-                    <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#5A5D6B' }}>
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--warn)' }} />
+                    <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
                       熱門股票
                     </span>
                   </div>
@@ -403,12 +392,12 @@ export default function SearchHero({
                       return (
                         <motion.button
                           key={`hot-${stock.id}`}
-                          whileHover={{ scale: 1.04 }}
-                          whileTap={{ scale: 0.96 }}
+                          whileHover={{ scale: 1.03, y: -2 }}
+                          whileTap={{ scale: 0.97 }}
                           onClick={() => onSelectStock(stock)}
-                          className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl border transition-all"
+                          className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl border transition-all duration-200 glass-shimmer"
                           style={{
-                            background: 'rgba(255,255,255,0.03)',
+                            background: 'rgba(255,255,255,0.02)',
                             borderColor: 'rgba(255,255,255,0.06)',
                           }}
                         >
@@ -434,9 +423,9 @@ export default function SearchHero({
               {/* ── Recent Searches ── */}
               {recentStocks.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                    <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#5A5D6B' }}>
+                    <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--text-dim)' }} />
+                    <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
                       最近搜尋
                     </span>
                   </div>

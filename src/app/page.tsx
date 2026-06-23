@@ -133,19 +133,19 @@ export default function StockPowerPage() {
 
   // Loading state
   if (isLoading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0B0F17' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'transparent' }}>
       <div className="text-center">
         <div className="w-10 h-10 mx-auto mb-4 rounded-xl flex items-center justify-center"
           style={{ background: 'linear-gradient(135deg, #5B8CFF, #8B5CFF)' }}>
           <span className="text-xs font-black text-white">SP</span>
         </div>
-        <div className="text-xs font-mono" style={{ color: '#5A5D6B' }}>載入中...</div>
+        <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>載入中...</div>
       </div>
     </div>
   );
 
   return (
-    <div style={{ background: '#0B0F17' }}>
+    <div style={{ background: 'transparent' }}>
       <CommandPalette
         isOpen={showCmdPalette}
         onClose={() => setShowCmdPalette(false)}
@@ -159,8 +159,8 @@ export default function StockPowerPage() {
       />
 
       {isLiveError && (
-        <div className="fixed top-4 right-4 z-50 text-[11px] px-3 py-1.5 rounded-lg"
-          style={{ background: '#131A24', border: '1px solid rgba(255,77,109,0.3)', color: '#FF4D6D' }}>
+        <div className="fixed top-4 right-4 z-50 text-[11px] px-3 py-1.5 rounded-lg glass-sm"
+          style={{ borderColor: 'rgba(251,113,133,0.3)', color: 'var(--down)' }}>
           ⚠ 即時資料離線，使用靜態數據
         </div>
       )}

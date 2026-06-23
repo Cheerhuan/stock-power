@@ -16,7 +16,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-TW" className="dark" style={{ overflowX: 'hidden' }}>
-      <body className="antialiased" style={{ overflowX: 'hidden', maxWidth: '100vw' }}>{children}</body>
+      <body className="antialiased">
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
