@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import StockChart from './StockChart';
 import {
@@ -133,6 +133,38 @@ export default function StockDetail({
   const score = stock?.score != null ? (stock.score / 6) * 100 : null;
   const risk = stock?.risk_score ?? null;
   const advice = stock?.advice ?? null;
+
+  /* ─── 三大法人即時資料（從 TWSE API 抓） ─────────── */
+  const [instData, setInstData] = useState<{
+    foreign: number;
+    investment_trust: number;
+    dealer_total: number;
+  } | null>(null);
+  const [instLoading, setInstLoading] = useState(false);
+
+  useEffect(() => {
+    const sid = stock?.id;
+    if (!sid) return;
+    setInstLoading(true);
+    fetch(`/api/institutional?stockId=${sid}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && !data.error) {
+          setInstData({
+            foreign: data.foreign ?? 0,
+            investment_trust: data.investment_trust ?? 0,
+            dealer_total: data.dealer_total ?? 0,
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setInstLoading(false));
+  }, [stock?.id]);
+
+  // 合併：優先使用即時 API 資料，否則 fallback 到 stock-data.json
+  const liveInstNet = instData
+    ? instData
+    : null;
 
   // consensus: 支援物件 {key: bool} 和陣列 [{name, key, color, match}]
   const consensusList = stock?.consensus
@@ -317,18 +349,22 @@ export default function StockDetail({
           <span className="text-sm font-semibold text-white">三大法人</span>
         </div>
         <div className="space-y-2.5">
-          {(stock?.inst_net
-            ? [
-                { label: '外資', netBuy: stock.inst_net.foreign ?? 0, color: '#00D26A' },
-                { label: '投信', netBuy: stock.inst_net.investment_trust ?? 0, color: '#00D26A' },
-                { label: '自營商', netBuy: stock.inst_net.dealer ?? 0, color: '#FF4D6D' },
-              ]
-            : [{ label: '外資', netBuy: 0, color: '#00D26A' }, { label: '投信', netBuy: 0, color: '#00D26A' }, { label: '自營商', netBuy: 0, color: '#FF4D6D' }]
-          ).map((inst) => {
+          {instLoading ? (
+            <div className="flex items-center justify-center py-3">
+              <div className="w-4 h-4 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-zinc-500 ml-2">載入中...</span>
+            </div>
+          ) : (
+            (liveInstNet ? [
+                { label: '外資', netBuy: liveInstNet.foreign ?? 0, color: '#00D26A' },
+                { label: '投信', netBuy: liveInstNet.investment_trust ?? 0, color: '#00D26A' },
+                { label: '自營商', netBuy: liveInstNet.dealer_total ?? 0, color: '#FF4D6D' },
+              ] : []
+            ).map((inst) => {
             const absVal = Math.abs(inst.netBuy);
             const maxVal = Math.max(...(
-              stock?.inst_net
-                ? [Math.abs(stock.inst_net.foreign ?? 0), Math.abs(stock.inst_net.investment_trust ?? 0), Math.abs(stock.inst_net.dealer ?? 0)]
+              liveInstNet
+                ? [Math.abs(liveInstNet.foreign ?? 0), Math.abs(liveInstNet.investment_trust ?? 0), Math.abs(liveInstNet.dealer_total ?? 0)]
                 : [1]
             ), 1);
             const barWidth = (absVal / maxVal) * 100;
@@ -363,7 +399,7 @@ export default function StockDetail({
                 </div>
               </div>
             );
-          })}
+          }))}
         </div>
       </motion.div>
 
