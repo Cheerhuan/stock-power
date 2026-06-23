@@ -1,110 +1,95 @@
+import { NextRequest, NextResponse } from 'next/server';
+
 /**
- * TWSE 三大法人買賣超 API Proxy
+ * TWSE 三大法人買賣超明細（T86）
  *
- * 從 TWSE BFI82U 抓取特定股票的三大法人買賣超明細。
- * 回傳格式：{ foreign, investment_trust, dealer_self, dealer_hedge, dealer_total }
- * 單位：股
+ * T86 回傳所有股票當日三大法人買賣超：
+ *   [0]  證券代號
+ *   [1]  證券名稱
+ *   [2]  外陸資買進股數
+ *   [3]  外陸資賣出股數
+ *   [4]  外陸資買賣超股數          ← 外資淨買超
+ *   [5]  外資自營商買進股數
+ *   [6]  外資自營商賣出股數
+ *   [7]  外資自營商買賣超股數
+ *   [8]  投信買進股數
+ *   [9]  投信賣出股數
+ *   [10] 投信買賣超股數            ← 投信淨買超
+ *   [11] 自營商買賣超股數（自行+避險） ← 自營商淨買超
+ *   [18] 三大法人買賣超股數
  */
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
-
-function extractValue(raw: string): string {
-  if (!raw) return '0'
-  return raw.replace(/<[^>]*>/g, '').replace(/,/g, '').trim()
+function toInt(v: string | null | undefined): number {
+  if (!v) return 0;
+  return parseInt(v.replace(/,/g, ''), 10) || 0;
 }
 
-function tryDates(n = 5): string[] {
-  const dates: string[] = []
-  const now = new Date()
-  const taipei = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Taipei' }))
-  for (let i = 0; i < n; i++) {
-    const d = new Date(taipei)
-    d.setDate(d.getDate() - i)
-    const day = d.getDay()
-    if (day === 0 || day === 6) continue
-    const y = d.getFullYear()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const dd = String(d.getDate()).padStart(2, '0')
-    dates.push(`${y}${m}${dd}`)
-  }
-  return Array.from(new Set(dates))
-}
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const stockId = searchParams.get('stockId')
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const stockId = searchParams.get('stockId');
 
   if (!stockId) {
-    return Response.json({ error: 'Missing stockId parameter' }, { status: 400 })
+    return NextResponse.json({ error: 'Missing stockId parameter' }, { status: 400 });
   }
 
-  const dates = tryDates(5)
-  let lastError = ''
+  // 今天日期（台北時間）
+  const now = new Date();
+  const twDate = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const yyyyMMdd = twDate.toISOString().slice(0, 10).replace(/-/g, '');
 
-  for (const date of dates) {
-    const url = `https://www.twse.com.tw/fund/BFI82U?response=json&dayDate=${date}`
+  // 嘗試最近 5 個交易日（因 T86 只有交易日有資料）
+  for (let offset = 0; offset < 7; offset++) {
+    const d = new Date(twDate.getTime() - offset * 24 * 60 * 60 * 1000);
+    const dateStr = d.toISOString().slice(0, 10).replace(/-/g, '');
+    const url = `https://www.twse.com.tw/fund/T86?response=json&date=${dateStr}&selectType=ALL`;
+
     try {
       const res = await fetch(url, {
-        headers: { 'User-Agent': 'Stock-Power/1.0' },
-        signal: AbortSignal.timeout(15_000),
-      })
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(8000),
+      });
+      const text = await res.text();
 
-      if (!res.ok) {
-        lastError = `HTTP ${res.status}`
-        continue
+      // TWSE 偶爾回傳非 JSON（流量管制）
+      let json: any;
+      try {
+        json = JSON.parse(text);
+      } catch {
+        continue;
       }
 
-      const json = await res.json()
-      if (json.stat !== 'OK') {
-        lastError = json.stat || 'no data'
-        continue
-      }
+      if (json.stat !== 'OK' || !Array.isArray(json.data)) continue;
 
-      // 從 data 陣列中找到目標股票
-      for (const row of json.data || []) {
-        if (!row || row.length < 5) continue
-        const sid = String(row[0] ?? '').trim()
-        if (sid !== stockId) continue
+      // 搜尋目標股票
+      const row = json.data.find((r: string[]) => r[0]?.trim() === stockId);
+      if (!row) continue;
 
-        const foreign = parseInt(extractValue(row[2] ?? '0'), 10) || 0
-        const investmentTrust = parseInt(extractValue(row[3] ?? '0'), 10) || 0
-        const dealerSelf = parseInt(extractValue(row[5] ?? '0'), 10) || 0
-        const dealerHedge = parseInt(extractValue(row[6] ?? '0'), 10) || 0
+      const foreign = toInt(row[4]);
+      const investment_trust = toInt(row[10]);
+      const dealer_total = toInt(row[11]);
 
-        return Response.json({
-          stockId,
-          date,
-          foreign,
-          investment_trust: investmentTrust,
-          dealer_self: dealerSelf,
-          dealer_hedge: dealerHedge,
-          dealer_total: dealerSelf + dealerHedge,
-          // 總買賣超為三者合計（不含重複計算 dealer）
-          total: foreign + investmentTrust + dealerSelf + dealerHedge,
-          fetchedAt: Date.now(),
-        })
-      }
-
-      // 找到該日資料但沒有這檔股票（可能未交易）
-      lastError = `stock ${stockId} not found in ${date} data`
-      continue
-
-    } catch (e: any) {
-      lastError = e.message || String(e)
-      continue
+      return NextResponse.json({
+        stockId,
+        date: dateStr,
+        foreign,
+        investment_trust,
+        dealer_total,
+        total: foreign + investment_trust + dealer_total,
+      });
+    } catch {
+      continue; // timeout / 錯誤 → 試前一天
     }
   }
 
-  return Response.json({
-    error: `三大法人資料失敗: ${lastError}`,
+  // 完全找不到資料
+  return NextResponse.json({
     stockId,
+    date: null,
+    error: 'No institutional data found in recent trading days',
     foreign: 0,
     investment_trust: 0,
-    dealer_self: 0,
-    dealer_hedge: 0,
     dealer_total: 0,
-    total: 0,
-    fetchedAt: Date.now(),
-  })
+  });
 }
+
+export const dynamic = 'force-dynamic';
